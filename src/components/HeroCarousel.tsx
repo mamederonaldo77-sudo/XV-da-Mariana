@@ -141,7 +141,10 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
     setImageErrorState((prev) => ({ ...prev, [id]: true }));
     const target = e.currentTarget;
     target.onerror = null; // Prevent infinite fallback loops
-    target.src = ASSET_IMAGES.portrait; // Bulletproof embedded fallback
+    if (id === 'c2' || id === '1') target.src = ASSET_IMAGES.garden;
+    else if (id === 'c3' || id === '2') target.src = ASSET_IMAGES.waltz;
+    else if (id === 'c4' || id === '3') target.src = ASSET_IMAGES.special;
+    else target.src = ASSET_IMAGES.portrait;
   };
 
   return (
@@ -188,7 +191,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
               activeImagesList.map((img, idx) => {
                 const isActive = idx === currentIndex;
                 const isLoaded = Boolean(imageLoadedState[img.id || String(idx)]);
-                const resolvedSrc = resolveImageUrl(img.url, idx === 1 ? 'garden' : idx === 2 ? 'waltz' : 'portrait');
+                const resolvedSrc = resolveImageUrl(img.url, idx === 1 ? 'garden' : idx === 2 ? 'waltz' : idx === 3 ? 'special' : 'portrait');
 
                 return (
                   <div

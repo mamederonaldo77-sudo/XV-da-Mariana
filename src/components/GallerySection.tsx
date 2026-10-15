@@ -83,7 +83,15 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                 onError={(e) => {
                   const target = e.currentTarget;
                   target.onerror = null;
-                  target.src = ASSET_IMAGES.portrait;
+                  const fallbacks = [
+                    ASSET_IMAGES.decor,
+                    ASSET_IMAGES.gallery2,
+                    ASSET_IMAGES.aboutMe,
+                    ASSET_IMAGES.gallery4,
+                    ASSET_IMAGES.gallery5,
+                    ASSET_IMAGES.shoes,
+                  ];
+                  target.src = fallbacks[index % fallbacks.length] || ASSET_IMAGES.portrait;
                 }}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
               />
@@ -160,7 +168,15 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
               onError={(e) => {
                 const target = e.currentTarget;
                 target.onerror = null;
-                target.src = ASSET_IMAGES.portrait;
+                const fallbacks = [
+                  ASSET_IMAGES.decor,
+                  ASSET_IMAGES.gallery2,
+                  ASSET_IMAGES.aboutMe,
+                  ASSET_IMAGES.gallery4,
+                  ASSET_IMAGES.gallery5,
+                  ASSET_IMAGES.shoes,
+                ];
+                target.src = fallbacks[activePhotoIndex % fallbacks.length] || ASSET_IMAGES.portrait;
               }}
               className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/20"
             />

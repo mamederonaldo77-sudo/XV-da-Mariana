@@ -44,28 +44,28 @@ export const DEFAULT_CONFIG: SiteConfig = {
   carouselImages: [
     {
       id: 'c1',
-      url: 'images/carrossel-1.jpeg',
+      url: 'public/images/carrossel-1.jpeg',
       title: 'Mariana',
       caption: 'XV Mari — Celebrando 15 anos de sonhos e encantos',
       alt: 'Mariana com vestido e tiara delicada',
     },
     {
       id: 'c2',
-      url: 'images/carrossel-2.jpeg',
+      url: 'public/images/carrossel-2.jpeg',
       title: 'Jardim Encantado',
       caption: 'Momentos inesquecíveis iluminados pelo luar',
       alt: 'Mariana caminhando no jardim',
     },
     {
       id: 'c3',
-      url: 'images/carrossel-3.jpeg',
+      url: 'public/images/carrossel-3.jpeg',
       title: 'A Grande Valsa',
       caption: 'A magia de dançar o início de um novo capítulo',
       alt: 'Mariana dançando com vestido de baile',
     },
     {
       id: 'c4',
-      url: 'images/carrossel-4.jpeg',
+      url: 'public/images/carrossel-4.jpeg',
       title: 'Momento Especial',
       caption: 'A alegria de comemorar com quem amamos',
       alt: 'Mariana celebrando seus 15 anos',
@@ -75,42 +75,42 @@ export const DEFAULT_CONFIG: SiteConfig = {
   galleryPhotos: [
     {
       id: 'g1',
-      url: 'images/galeria-1.jpeg',
+      url: 'public/images/galeria-1.jpeg',
       title: 'Decoração e Flores',
       category: 'Detalhes',
       alt: 'Mesa de banquete com hortênsias lilás e velas',
     },
     {
       id: 'g2',
-      url: 'images/galeria-2.jpeg',
+      url: 'public/images/galeria-2.jpeg',
       title: 'Jardim Iluminado',
       category: 'Ensaio',
       alt: 'Mariana no jardim florido',
     },
     {
       id: 'g3',
-      url: 'images/galeria-3.jpeg',
+      url: 'public/images/galeria-3.jpeg',
       title: 'Sobre Mim',
       category: 'Retrato',
       alt: 'Mariana com sorriso meigo',
     },
     {
       id: 'g4',
-      url: 'images/galeria-4.jpeg',
+      url: 'public/images/galeria-4.jpeg',
       title: 'Retrato da Debutante',
       category: 'Ensaio',
       alt: 'Retrato clássico com vestido e tiara',
     },
     {
       id: 'g5',
-      url: 'images/galeria-5.jpeg',
+      url: 'public/images/galeria-5.jpeg',
       title: 'Salão Real',
       category: 'Celebração',
       alt: 'Mariana no salão de baile',
     },
     {
       id: 'g6',
-      url: 'images/galeria-6.jpeg',
+      url: 'public/images/galeria-6.jpeg',
       title: 'Brilho e Detalhes',
       category: 'Detalhes',
       alt: 'Salto prateado e detalhes da comemoração',
@@ -191,36 +191,22 @@ export const storageService = {
 
         // Check if config version needs upgrade to ensure new requested images are loaded
         const configVersion = parsed._configVersion || 1;
-        const CURRENT_VERSION = 4;
+        const CURRENT_VERSION = 7;
 
-        // If version is older, ensure the new requested carousel, gallery photos and dress code guide are applied
+        // If version is older, ensure the new requested carousel, gallery photos, dress code guide and video are applied
         if (configVersion < CURRENT_VERSION) {
-          // If the stored carousel only has standard/default photos (not custom data URIs), update to new 4 photos
-          const hasCustomCarousel = Array.isArray(parsed.carouselImages) && parsed.carouselImages.some((img: any) => img.url?.startsWith('data:'));
-          if (!hasCustomCarousel) {
-            merged.carouselImages = DEFAULT_CONFIG.carouselImages;
-          }
-
-          // If the stored gallery only has standard/default photos, update to new 6 photos
-          const hasCustomGallery = Array.isArray(parsed.galleryPhotos) && parsed.galleryPhotos.some((img: any) => img.url?.startsWith('data:'));
-          if (!hasCustomGallery) {
-            merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
-          }
-
-          // Update aboutImageUrl if not custom data URI
-          if (!parsed.aboutImageUrl?.startsWith('data:')) {
-            merged.aboutImageUrl = DEFAULT_CONFIG.aboutImageUrl;
-          }
-
-          if (!parsed.dressCodeImageUrl?.startsWith('data:')) {
-            merged.dressCodeImageUrl = DEFAULT_CONFIG.dressCodeImageUrl;
-          }
-
+          merged.carouselImages = DEFAULT_CONFIG.carouselImages;
+          merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
+          merged.aboutImageUrl = DEFAULT_CONFIG.aboutImageUrl;
+          merged.dressCodeImageUrl = DEFAULT_CONFIG.dressCodeImageUrl;
           merged.videoUrl = 'Convite-videomp4.mp4';
           merged._configVersion = CURRENT_VERSION;
+          try {
+            localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(merged));
+          } catch (_) {}
         } else {
           // Ensure carouselImages reflects saved images without losing user uploads
-          if (Array.isArray(parsed.carouselImages)) {
+          if (Array.isArray(parsed.carouselImages) && parsed.carouselImages.length >= 4) {
             merged.carouselImages = parsed.carouselImages.map((img: any) => ({
               ...img,
               title: sanitizeText(img.title || ''),
@@ -231,7 +217,7 @@ export const storageService = {
           }
 
           // Map legacy or path URLs in galleryPhotos
-          if (Array.isArray(parsed.galleryPhotos)) {
+          if (Array.isArray(parsed.galleryPhotos) && parsed.galleryPhotos.length >= 6) {
             merged.galleryPhotos = parsed.galleryPhotos.map((img: any) => ({
               ...img,
               title: sanitizeText(img.title || ''),
@@ -246,6 +232,10 @@ export const storageService = {
 
           // Map dressCodeImageUrl
           merged.dressCodeImageUrl = resolveImageUrl(parsed.dressCodeImageUrl || DEFAULT_CONFIG.dressCodeImageUrl, 'dressCodeGuide');
+        }
+
+        if (!merged.videoUrl || merged.videoUrl.trim() === '') {
+          merged.videoUrl = 'Convite-videomp4.mp4';
         }
 
         // Sanitize name and text
@@ -284,7 +274,17 @@ export const storageService = {
     try {
       const idbBackup = await mediaDb.getConfigBackup();
       if (idbBackup && typeof idbBackup === 'object') {
-        const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...idbBackup };
+        const idbVersion = (idbBackup as any)._configVersion || 1;
+        const baseBackup = idbVersion < 7 ? {
+          ...idbBackup,
+          carouselImages: DEFAULT_CONFIG.carouselImages,
+          galleryPhotos: DEFAULT_CONFIG.galleryPhotos,
+          aboutImageUrl: DEFAULT_CONFIG.aboutImageUrl,
+          dressCodeImageUrl: DEFAULT_CONFIG.dressCodeImageUrl,
+          videoUrl: 'Convite-videomp4.mp4',
+          _configVersion: 7,
+        } : idbBackup;
+        const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...baseBackup };
         cachedConfig = merged;
         try {
           localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(merged));
