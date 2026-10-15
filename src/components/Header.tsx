@@ -26,7 +26,6 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navItems: { id: PageRoute; label: string; isPrimary?: boolean }[] = [
     { id: 'inicio', label: 'Início' },
-    { id: 'meus-15-anos', label: 'Meus 15 Anos' },
     { id: 'nossa-promessa', label: 'Nossa Promessa' },
     { id: 'presentes', label: 'Presentes' },
     { id: 'recados', label: 'Recados' },
@@ -83,14 +82,6 @@ export const Header: React.FC<HeaderProps> = ({
           <DebutanteCrown className="w-7 h-7 text-[#B9B5C4] drop-shadow-xs" />
         </div>
 
-        {/* Cursive Subtitle "Meus 15 Anos" */}
-        <div className="flex items-center justify-center gap-2 text-[#82758D]">
-          <SoftHeart className="w-3.5 h-3.5 text-[#C9B4D9]/80" />
-          <p className="font-cursive text-2xl sm:text-3xl text-[#82758D] tracking-wide">
-            {heroSubheading}
-          </p>
-          <SoftHeart className="w-3.5 h-3.5 text-[#C9B4D9]/80" />
-        </div>
 
         {/* Main Name "XV da Mari" and Full Name */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif-luxury font-semibold tracking-wide text-[#5D5068] mt-1">

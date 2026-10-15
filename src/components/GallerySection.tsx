@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GalleryPhoto } from '../types';
 import { SoftHeart } from './Ornaments';
+import { resolveImageUrl, ASSET_IMAGES } from '../assets/imagesMap';
 import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 
 interface GallerySectionProps {
@@ -75,10 +76,15 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
           >
             <div className="relative aspect-[4/5] sm:aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden bg-[#FAF7F8]">
               <img
-                src={photo.url}
+                src={resolveImageUrl(photo.url)}
                 alt={photo.alt || photo.title || 'Foto de Mariana'}
                 referrerPolicy="no-referrer"
                 loading="lazy"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.onerror = null;
+                  target.src = ASSET_IMAGES.portrait;
+                }}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
               />
 
@@ -148,9 +154,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={photos[activePhotoIndex].url}
+              src={resolveImageUrl(photos[activePhotoIndex].url)}
               alt={photos[activePhotoIndex].alt || 'Foto ampliada'}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.onerror = null;
+                target.src = ASSET_IMAGES.portrait;
+              }}
               className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/20"
             />
             <div className="mt-3 text-center text-white">

@@ -38,7 +38,7 @@ export const Footer: React.FC<FooterProps> = ({
           <DebutanteCrown className="w-6 h-6 text-[#B9B5C4]" />
         </div>
 
-        {/* Phrase 1: "Com muito amor, Mariana Resende" */}
+        {/* Phrase 1: "Com muito amor, Mariana" */}
         <p className="font-cursive text-3xl sm:text-4xl text-[#5D5068]">
           Com muito amor, {debutanteName}
         </p>

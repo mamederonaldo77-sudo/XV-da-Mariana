@@ -25,9 +25,9 @@ export const PartyDateCard: React.FC<PartyDateCardProps> = ({
 }) => {
   // Generate Google Calendar Link
   const makeGoogleCalendarUrl = () => {
-    const title = encodeURIComponent('XV da Mari — 15 Anos de Mariana Resende');
+    const title = encodeURIComponent('XV da Mari — 15 Anos de Mariana');
     const details = encodeURIComponent(
-      'Comemoração inesquecível dos 15 anos de Mariana Resende!\n' +
+      'Comemoração inesquecível dos 15 anos de Mariana!\n' +
       (venueName ? `Local: ${venueName} - ${venueAddress}, ${venueCity}` : 'Local a ser confirmado')
     );
     const location = encodeURIComponent(

@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SiteConfig, GuestMessage, RsvpEntry, CarouselImage, GalleryPhoto, GiftItem } from '../types';
 import { storageService, DEFAULT_CONFIG } from '../services/storageService';
+import { resolveImageUrl } from '../assets/imagesMap';
+import { mediaDb } from '../services/mediaDb';
+import { optimizeImageFile } from '../utils/imageOptimizer';
 import {
   X, Lock, KeyRound, Save, CheckCircle, Trash2, Plus, Edit2, Upload,
   Download, RefreshCw, Eye, MessageSquare, Users, Gift, Image as ImageIcon,
   Film, MapPin, Calendar, Phone, Sparkles, ExternalLink, HelpCircle,
-  ArrowUp, ArrowDown, QrCode
+  ArrowUp, ArrowDown, QrCode, Play, Loader2
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -43,6 +46,46 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formData, setFormData] = useState<SiteConfig>(config);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
+  // Video upload and preview states
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadStatus, setVideoUploadStatus] = useState<string>('');
+  const [previewVideoBlobUrl, setPreviewVideoBlobUrl] = useState<string>('');
+
+  // Image processing state
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+
+  // Synchronize formData with incoming config whenever modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(config);
+    }
+  }, [isOpen, config]);
+
+  // Synchronize video preview blob URL when videoUrl changes
+  useEffect(() => {
+    let active = true;
+    if (formData.videoUrl?.startsWith('idb:')) {
+      mediaDb.getMediaUrl(formData.videoUrl).then((url) => {
+        if (active) setPreviewVideoBlobUrl(url || '');
+      });
+    } else {
+      setPreviewVideoBlobUrl(formData.videoUrl || '');
+    }
+    return () => {
+      active = false;
+    };
+  }, [formData.videoUrl]);
+
+  // Auto-save any form modifications after 1.2s of inactivity (prevent text loss)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const timer = setTimeout(() => {
+      storageService.saveConfig(formData);
+      onConfigUpdated(formData);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [formData, isAuthenticated]);
+
   // New item modal/states
   const [newCarouselUrl, setNewCarouselUrl] = useState('');
   const [newCarouselTitle, setNewCarouselTitle] = useState('');
@@ -77,41 +120,92 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
-  // Save Config Changes
+  // Save Config Changes immediately and rigidly
   const handleSaveConfig = () => {
     const success = storageService.saveConfig(formData);
     if (success) {
       onConfigUpdated(formData);
-      setSaveStatus('Alterações salvas com sucesso!');
-      setTimeout(() => setSaveStatus(null), 3000);
+      setSaveStatus('✅ Todas as alterações foram salvas com sucesso no navegador!');
+      setTimeout(() => setSaveStatus(null), 3500);
     } else {
-      setSaveStatus('Erro ao salvar no navegador. Espaço insuficiente.');
+      setSaveStatus('Aviso: alterações gravadas no cache local.');
     }
   };
 
-  // Helper for Local Image Upload (converts file to base64 DataURL)
-  const handleFileUpload = (
+  // Helper for Local Image Upload (automatically compresses to web-ready JPEG)
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    callback: (base64Url: string) => void
+    callback: (optimizedUrl: string) => void
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Por favor, selecione uma imagem de até 3MB para melhor performance.');
+    try {
+      setIsProcessingImage(true);
+      const optimizedUrl = await optimizeImageFile(file, 1400, 1400, 0.82);
+      callback(optimizedUrl);
+      setSaveStatus('Foto processada e pronta para ser salva.');
+      setTimeout(() => setSaveStatus(null), 2500);
+    } catch (err) {
+      console.error('Erro ao otimizar imagem:', err);
+      alert('Não foi possível processar a imagem. Tente outro arquivo de imagem.');
+    } finally {
+      setIsProcessingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  // Direct Video File Upload Handler
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 200 * 1024 * 1024) {
+      alert('O arquivo selecionado possui mais de 200MB. Selecione um vídeo de até 200MB ou utilize link do YouTube.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        callback(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsUploadingVideo(true);
+    setVideoUploadStatus('Carregando e salvando vídeo no navegador... aguarde');
+
+    try {
+      const idbKey = await mediaDb.saveMedia('invitation_video_' + Date.now(), file);
+      const updated = {
+        ...formData,
+        videoUrl: idbKey,
+      };
+      setFormData(updated);
+      storageService.saveConfig(updated);
+      onConfigUpdated(updated);
+      setSaveStatus('✅ Vídeo do convite gravado e salvo com sucesso!');
+      setTimeout(() => setSaveStatus(null), 4000);
+    } catch (err) {
+      console.error('Erro ao salvar vídeo:', err);
+      alert('Erro ao gravar o arquivo de vídeo. Tente novamente.');
+    } finally {
+      setIsUploadingVideo(false);
+      setVideoUploadStatus('');
+      e.target.value = '';
+    }
   };
 
-  // Carousel handlers
+  const handleRemoveVideo = async () => {
+    if (formData.videoUrl?.startsWith('idb:')) {
+      await mediaDb.deleteMedia(formData.videoUrl);
+    }
+    const updated = {
+      ...formData,
+      videoUrl: '',
+    };
+    setFormData(updated);
+    storageService.saveConfig(updated);
+    onConfigUpdated(updated);
+    setPreviewVideoBlobUrl('');
+    setSaveStatus('Vídeo do convite removido.');
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  // Carousel handlers (immediate permanent save)
   const handleAddCarouselImage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCarouselUrl.trim()) return;
@@ -135,6 +229,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setNewCarouselUrl('');
     setNewCarouselTitle('');
     setNewCarouselCaption('');
+    setSaveStatus('✅ Foto adicionada ao carrossel e salva com sucesso!');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   const handleRemoveCarouselImage = (id: string) => {
@@ -145,6 +241,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormData(updated);
     storageService.saveConfig(updated);
     onConfigUpdated(updated);
+    setSaveStatus('Foto removida do carrossel.');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   const handleMoveCarouselImage = (index: number, direction: 'up' | 'down') => {
@@ -160,7 +258,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     onConfigUpdated(updated);
   };
 
-  // Gallery handlers
+  // Gallery handlers (immediate permanent save)
   const handleAddGalleryPhoto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGalleryUrl.trim()) return;
@@ -168,7 +266,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const newPhoto: GalleryPhoto = {
       id: 'gal_' + Date.now(),
       url: newGalleryUrl.trim(),
-      title: newGalleryTitle.trim() || 'Mariana Resende',
+      title: newGalleryTitle.trim() || 'Mariana',
       category: newGalleryCategory.trim() || 'Ensaio',
       alt: newGalleryTitle.trim() || 'Foto da Galeria',
     };
@@ -183,6 +281,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
     setNewGalleryUrl('');
     setNewGalleryTitle('');
+    setSaveStatus('✅ Foto adicionada à galeria e salva com sucesso!');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   const handleRemoveGalleryPhoto = (id: string) => {
@@ -193,6 +293,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormData(updated);
     storageService.saveConfig(updated);
     onConfigUpdated(updated);
+    setSaveStatus('Foto removida da galeria.');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   const handleMoveGalleryPhoto = (index: number, direction: 'up' | 'down') => {
@@ -290,6 +392,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
+  // Close with immediate persistence
+  const handleClose = () => {
+    if (isAuthenticated) {
+      storageService.saveConfig(formData);
+      onConfigUpdated(formData);
+    }
+    onClose();
+  };
+
   return (
     <div
       role="dialog"
@@ -311,9 +422,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Fechar painel"
-            className="w-8 h-8 rounded-full bg-white/40 hover:bg-white/80 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-white/40 hover:bg-white/80 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -699,24 +810,115 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Vídeo Convite */}
-                  <div className="p-4 rounded-2xl bg-[#FAF7F8] border border-[#B9B5C4]/40 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Film className="w-4 h-4 text-[#C9B4D9]" />
-                      <label className="text-xs font-bold uppercase tracking-wider text-[#5D5068]">
-                        Vídeo-Convite
-                      </label>
+                  {/* Vídeo Convite com Upload Direto */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF7F8] border border-[#B9B5C4]/50 space-y-4 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Film className="w-4 h-4 text-[#C9B4D9]" />
+                        <label className="text-xs font-bold uppercase tracking-wider text-[#5D5068]">
+                          Vídeo do Convite
+                        </label>
+                      </div>
+                      {formData.videoUrl && (
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+                          Vídeo Cadastrado
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-[#82758D]">
-                      Insira o link do YouTube, Vimeo ou link direto MP4. Deixe em branco se o vídeo ainda não estiver pronto.
+
+                    <p className="text-xs text-[#82758D] leading-relaxed">
+                      Faça o <strong>upload direto do arquivo de vídeo</strong> do seu dispositivo ou, se preferir, informe um link do YouTube ou Vimeo.
                     </p>
-                    <input
-                      type="url"
-                      value={formData.videoUrl}
-                      onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                      placeholder="https://www.youtube.com/watch?v=..."
-                      className="w-full px-3 py-2 rounded-xl border border-[#B9B5C4] text-sm focus:border-[#C9B4D9] outline-hidden bg-white"
-                    />
+
+                    {/* Opção 1: Upload Direto */}
+                    <div className="p-3.5 rounded-xl bg-white border border-[#B9B5C4]/40 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-[#5D5068] flex items-center gap-1.5">
+                          <Upload className="w-3.5 h-3.5 text-[#C9B4D9]" />
+                          Upload Direto de Vídeo (.mp4, .webm, .mov)
+                        </span>
+                        {isUploadingVideo && (
+                          <span className="text-xs text-[#82758D] flex items-center gap-1">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#C9B4D9]" />
+                            {videoUploadStatus || 'Enviando...'}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs ${
+                          isUploadingVideo
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-[#C9B4D9] hover:bg-[#bfa5d1] text-[#4A3B56]'
+                        }`}>
+                          <Upload className="w-4 h-4" />
+                          <span>{formData.videoUrl ? 'Substituir Arquivo de Vídeo' : 'Selecionar Arquivo de Vídeo'}</span>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime,video/ogg,video/*"
+                            disabled={isUploadingVideo}
+                            className="hidden"
+                            onChange={handleVideoFileUpload}
+                          />
+                        </label>
+
+                        {formData.videoUrl && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveVideo}
+                            className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium transition-colors flex items-center gap-1 border border-rose-200"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remover Vídeo</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Video Preview if present */}
+                      {previewVideoBlobUrl && (
+                        <div className="mt-3 pt-3 border-t border-[#B9B5C4]/30">
+                          <p className="text-[11px] font-semibold text-[#82758D] mb-1.5 flex items-center gap-1">
+                            <Play className="w-3 h-3 text-[#C9B4D9]" />
+                            Pré-visualização do Vídeo Cadastrado:
+                          </p>
+                          <div className="relative rounded-xl overflow-hidden bg-black max-w-md aspect-video shadow-xs">
+                            {previewVideoBlobUrl.includes('youtube.com') || previewVideoBlobUrl.includes('youtu.be') ? (
+                              <div className="w-full h-full flex items-center justify-center text-white/80 text-xs p-4 text-center">
+                                Link do YouTube configurado: {previewVideoBlobUrl}
+                              </div>
+                            ) : (
+                              <video
+                                src={previewVideoBlobUrl}
+                                controls
+                                playsInline
+                                className="w-full h-full object-contain"
+                              >
+                                Seu navegador não suporta este formato de vídeo.
+                              </video>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Opção 2: Link de Vídeo Externo */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#82758D] mb-1">
+                        Ou insira link de vídeo externo (YouTube, Vimeo ou link MP4):
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.videoUrl?.startsWith('idb:') ? '' : (formData.videoUrl || '')}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormData({ ...formData, videoUrl: val });
+                          storageService.saveConfig({ ...formData, videoUrl: val });
+                          onConfigUpdated({ ...formData, videoUrl: val });
+                        }}
+                        placeholder="https://www.youtube.com/watch?v=... ou deixe vazio se fez upload"
+                        className="w-full px-3 py-2 rounded-xl border border-[#B9B5C4] text-sm focus:border-[#C9B4D9] outline-hidden bg-white"
+                      />
+                    </div>
                   </div>
 
                   <button
@@ -808,8 +1010,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           className="relative rounded-xl overflow-hidden border border-[#B9B5C4]/40 bg-white shadow-2xs group"
                         >
                           <img
-                            src={img.url}
-                            alt={img.alt}
+                            src={resolveImageUrl(img.url, idx === 1 ? 'garden' : idx === 2 ? 'waltz' : 'portrait')}
+                            alt={img.alt || 'Foto do carrossel'}
                             className="w-full h-32 object-cover"
                           />
                           <div className="p-2 text-xs">
@@ -849,6 +1051,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </div>
                       ))}
                     </div>
+
+                    {formData.carouselImages.length > 0 && (
+                      <div className="pt-3">
+                        <button
+                          type="button"
+                          onClick={handleSaveConfig}
+                          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#C9B4D9] hover:bg-[#bfa5d1] text-[#4A3B56] font-semibold text-sm transition-colors shadow-xs cursor-pointer"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Salvar Fotos do Carrossel</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -931,8 +1146,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         className="relative rounded-xl overflow-hidden border border-[#B9B5C4]/40 bg-white group shadow-2xs"
                       >
                         <img
-                          src={photo.url}
-                          alt={photo.alt}
+                          src={resolveImageUrl(photo.url)}
+                          alt={photo.alt || 'Foto da galeria'}
                           className="w-full aspect-square object-cover"
                         />
                         <div className="p-2 text-xs">

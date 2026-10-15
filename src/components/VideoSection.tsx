@@ -1,6 +1,7 @@
-import React from 'react';
-import { Film, PlayCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Film } from 'lucide-react';
 import { SoftHeart } from './Ornaments';
+import { mediaDb } from '../services/mediaDb';
 
 interface VideoSectionProps {
   videoUrl: string;
@@ -8,8 +9,35 @@ interface VideoSectionProps {
 }
 
 export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmin }) => {
-  const isYouTube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'));
-  const isVimeo = videoUrl && videoUrl.includes('vimeo.com');
+  const [resolvedVideoSrc, setResolvedVideoSrc] = useState<string>('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!videoUrl || videoUrl.trim() === '') {
+      setResolvedVideoSrc('');
+      return;
+    }
+
+    const trimmed = videoUrl.trim();
+
+    if (trimmed.startsWith('idb:')) {
+      mediaDb.getMediaUrl(trimmed).then((blobUrl) => {
+        if (isMounted) {
+          setResolvedVideoSrc(blobUrl || '');
+        }
+      });
+    } else {
+      setResolvedVideoSrc(trimmed);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [videoUrl]);
+
+  const isYouTube = resolvedVideoSrc && (resolvedVideoSrc.includes('youtube.com') || resolvedVideoSrc.includes('youtu.be'));
+  const isVimeo = resolvedVideoSrc && resolvedVideoSrc.includes('vimeo.com');
 
   const getYouTubeEmbedUrl = (url: string) => {
     let videoId = '';
@@ -27,6 +55,8 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
     const match = url.match(/vimeo\.com\/(\d+)/);
     return match ? `https://player.vimeo.com/video/${match[1]}` : url;
   };
+
+  const hasVideo = Boolean(resolvedVideoSrc && resolvedVideoSrc.trim() !== '');
 
   return (
     <section
@@ -47,27 +77,27 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
       </div>
 
       <div className="max-w-2xl mx-auto">
-        {videoUrl && videoUrl.trim() !== '' ? (
+        {hasVideo ? (
           <div className="relative rounded-2xl overflow-hidden silver-border bg-black aspect-video shadow-md">
             {isYouTube ? (
               <iframe
-                src={getYouTubeEmbedUrl(videoUrl)}
-                title="Vídeo-convite Mariana Resende"
+                src={getYouTubeEmbedUrl(resolvedVideoSrc)}
+                title="Vídeo-convite Mariana"
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             ) : isVimeo ? (
               <iframe
-                src={getVimeoEmbedUrl(videoUrl)}
-                title="Vídeo-convite Mariana Resende"
+                src={getVimeoEmbedUrl(resolvedVideoSrc)}
+                title="Vídeo-convite Mariana"
                 className="w-full h-full border-0"
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowFullScreen
               />
             ) : (
               <video
-                src={videoUrl}
+                src={resolvedVideoSrc}
                 controls
                 playsInline
                 className="w-full h-full object-contain"
@@ -90,9 +120,9 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
             </p>
             <button
               onClick={onOpenAdmin}
-              className="mt-4 text-[11px] text-[#A49AAA] hover:text-[#5D5068] underline underline-offset-2"
+              className="mt-4 text-[11px] text-[#A49AAA] hover:text-[#5D5068] underline underline-offset-2 cursor-pointer"
             >
-              Adicionar link de vídeo no painel
+              Fazer upload do vídeo no painel
             </button>
           </div>
         )}

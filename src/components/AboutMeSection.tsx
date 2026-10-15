@@ -1,5 +1,6 @@
 import React from 'react';
 import { SoftHeart } from './Ornaments';
+import { resolveImageUrl, ASSET_IMAGES } from '../assets/imagesMap';
 import { Heart } from 'lucide-react';
 
 interface AboutMeSectionProps {
@@ -69,9 +70,14 @@ export const AboutMeSection: React.FC<AboutMeSectionProps> = ({
 
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#C9B4D9] shadow-sm aspect-[4/3] sm:aspect-[4/5] bg-[#F8F5F6]">
                 <img
-                  src={imageUrl || '/src/assets/images/mari_about_me_1791932737518.jpg'}
+                  src={resolveImageUrl(imageUrl, 'aboutMe')}
                   alt={`Fotografia de ${debutanteName}`}
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.onerror = null;
+                    target.src = ASSET_IMAGES.aboutMe;
+                  }}
                   className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />

@@ -39,7 +39,7 @@ function parseRouteFromHash(): PageRoute {
 }
 
 export default function App() {
-  const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<SiteConfig>(() => storageService.getConfig());
   const [messages, setMessages] = useState<GuestMessage[]>([]);
   const [rsvps, setRsvps] = useState<RsvpEntry[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -96,7 +96,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Load persisted data on mount
+  // Load persisted data on mount with asynchronous fallback to IndexedDB
   useEffect(() => {
     const loadedConfig = storageService.getConfig();
     const loadedMessages = storageService.getMessages();
@@ -105,6 +105,25 @@ export default function App() {
     setConfig(loadedConfig);
     setMessages(loadedMessages);
     setRsvps(loadedRsvps);
+
+    // Check IndexedDB backup asynchronously to guarantee no data was lost
+    storageService.loadConfigAsync().then((asyncConfig) => {
+      if (asyncConfig) {
+        setConfig(asyncConfig);
+      }
+    });
+
+    const handleConfigSaved = (e: Event) => {
+      const customEvent = e as CustomEvent<SiteConfig>;
+      if (customEvent.detail) {
+        setConfig(customEvent.detail);
+      } else {
+        setConfig(storageService.getConfig());
+      }
+    };
+
+    window.addEventListener('xv_config_saved', handleConfigSaved);
+    return () => window.removeEventListener('xv_config_saved', handleConfigSaved);
   }, []);
 
   const handleConfigUpdated = (newConfig: SiteConfig) => {
@@ -145,7 +164,7 @@ export default function App() {
       <main className="flex-1 flex flex-col py-2 sm:py-4">
         {/* PAGE 1: Início */}
         {currentPage === 'inicio' && (
-          <div key="page-inicio" className="animate-fade-in flex flex-col gap-4">
+          <div key="page-inicio" className="animate-fade-in flex flex-col gap-6">
             {/* Carrossel moldurado de fotos logo abaixo do menu */}
             <HeroCarousel images={config.carouselImages} />
 
@@ -164,6 +183,20 @@ export default function App() {
             {/* Contagem regressiva com destaque ampliado */}
             <CountdownSection
               partyDateIso={config.partyDateIso}
+              debutanteName={config.debutanteName}
+            />
+
+            {/* Vídeo do convite exibido com elegância */}
+            <VideoSection
+              videoUrl={config.videoUrl}
+              onOpenAdmin={() => setIsAdminOpen(true)}
+            />
+
+            {/* Mensagem da Debutante */}
+            <AboutMeSection
+              title={config.aboutTitle}
+              text={config.aboutText}
+              imageUrl={config.aboutImageUrl}
               debutanteName={config.debutanteName}
             />
           </div>

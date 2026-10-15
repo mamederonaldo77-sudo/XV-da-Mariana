@@ -1,8 +1,9 @@
 import { SiteConfig, GuestMessage, RsvpEntry } from '../types';
-import { ASSET_IMAGES } from '../assets/imagesMap';
+import { DEFAULT_IMAGE_PATHS, resolveImageUrl } from '../assets/imagesMap';
+import { mediaDb } from './mediaDb';
 
 export const DEFAULT_CONFIG: SiteConfig = {
-  debutanteName: 'Mariana Resende',
+  debutanteName: 'Mariana',
   pageTitle: 'XV da Mari',
   heroSubheading: 'Meus 15 Anos',
   partyTitle: 'Minha Festa de 15 Anos',
@@ -20,8 +21,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
   whatsappNumber: '',
 
   aboutTitle: 'Sobre mim',
-  aboutText: `Meu nome é Mariana Resende e estou vivendo uma fase muito especial da minha vida. Completar 15 anos é celebrar minhas histórias, meus sonhos, minha família e todas as pessoas que fazem parte da minha caminhada.\n\nQuero compartilhar esse momento tão importante com pessoas especiais e guardar para sempre as lembranças desse dia.\n\nSerá uma alegria ter você comigo nessa celebração!`,
-  aboutImageUrl: ASSET_IMAGES.aboutMe,
+  aboutText: `Meu nome é Mariana e estou vivendo uma fase muito especial da minha vida. Completar 15 anos é celebrar minhas histórias, meus sonhos, minha família e todas as pessoas que fazem parte da minha caminhada.\n\nQuero compartilhar esse momento tão importante com pessoas especiais e guardar para sempre as lembranças desse dia.\n\nSerá uma alegria ter você comigo nessa celebração!`,
+  aboutImageUrl: DEFAULT_IMAGE_PATHS.aboutMe,
 
   // Nossa Promessa
   promiseTitle: 'Nossa Promessa',
@@ -43,21 +44,21 @@ export const DEFAULT_CONFIG: SiteConfig = {
   carouselImages: [
     {
       id: 'c1',
-      url: ASSET_IMAGES.portrait,
-      title: 'Mariana Resende',
+      url: DEFAULT_IMAGE_PATHS.portrait,
+      title: 'Mariana',
       caption: 'XV da Mari — Celebrando 15 anos de sonhos e encantos',
       alt: 'Mariana com vestido lilás e tiara delicada',
     },
     {
       id: 'c2',
-      url: ASSET_IMAGES.garden,
+      url: DEFAULT_IMAGE_PATHS.garden,
       title: 'Jardim Encantado',
       caption: 'Momentos inesquecíveis iluminados pelo luar',
       alt: 'Mariana caminhando no jardim com vestido lilás fluido',
     },
     {
       id: 'c3',
-      url: ASSET_IMAGES.waltz,
+      url: DEFAULT_IMAGE_PATHS.waltz,
       title: 'A Grande Valsa',
       caption: 'A magia de dançar o início de um novo capítulo',
       alt: 'Mariana dançando com vestido de baile lilás brilhante',
@@ -67,42 +68,42 @@ export const DEFAULT_CONFIG: SiteConfig = {
   galleryPhotos: [
     {
       id: 'g1',
-      url: ASSET_IMAGES.portrait,
+      url: DEFAULT_IMAGE_PATHS.portrait,
       title: 'Retrato da Debutante',
       category: 'Ensaio',
       alt: 'Ensaio fotográfico de Mariana com tiara e flores lilás',
     },
     {
       id: 'g2',
-      url: ASSET_IMAGES.garden,
+      url: DEFAULT_IMAGE_PATHS.garden,
       title: 'Noite Iluminada',
       category: 'Ensaio',
       alt: 'Mariana no jardim iluminado por lanternas',
     },
     {
       id: 'g3',
-      url: ASSET_IMAGES.waltz,
+      url: DEFAULT_IMAGE_PATHS.waltz,
       title: 'Salão Real',
       category: 'Celebração',
       alt: 'Salão de baile com vestido lilás',
     },
     {
       id: 'g4',
-      url: ASSET_IMAGES.aboutMe,
+      url: DEFAULT_IMAGE_PATHS.aboutMe,
       title: 'Sorriso Espontâneo',
       category: 'Retrato',
       alt: 'Mariana sorrindo com look suave',
     },
     {
       id: 'g5',
-      url: ASSET_IMAGES.decor,
+      url: DEFAULT_IMAGE_PATHS.decor,
       title: 'Decoração e Flores',
       category: 'Detalhes',
       alt: 'Mesa de banquete com hortênsias lilás e candelabros prateados',
     },
     {
       id: 'g6',
-      url: ASSET_IMAGES.shoes,
+      url: DEFAULT_IMAGE_PATHS.shoes,
       title: 'Brilho e Detalhes',
       category: 'Detalhes',
       alt: 'Salto prateado com brilho, fita lilás e tiara de cristal',
@@ -138,73 +139,144 @@ const STORAGE_KEYS = {
   ADMIN_PIN: 'xv_mari_admin_pin_v1',
 };
 
-const mapLegacyAssetUrl = (url: string | undefined): string => {
-  if (!url || typeof url !== 'string' || url.trim() === '') return ASSET_IMAGES.portrait;
-  if (url.startsWith('data:image/')) return url;
-  if (url.includes('mari_carousel_portrait')) return ASSET_IMAGES.portrait;
-  if (url.includes('mari_carousel_garden')) return ASSET_IMAGES.garden;
-  if (url.includes('mari_debutante_waltz')) return ASSET_IMAGES.waltz;
-  if (url.includes('mari_about_me')) return ASSET_IMAGES.aboutMe;
-  if (url.includes('mari_gallery_decor')) return ASSET_IMAGES.decor;
-  if (url.includes('mari_gallery_shoes')) return ASSET_IMAGES.shoes;
-  if (url.startsWith('/src/') || url.includes('/assets/images')) return ASSET_IMAGES.portrait;
-  return url;
-};
+// In-memory cache for synchronous instant access
+let cachedConfig: SiteConfig | null = null;
+
+function sanitizeText(val: string): string {
+  if (!val) return '';
+  return val
+    .replace(/Mariana\s+(Resende|Rezende)/gi, 'Mariana')
+    .replace(/\b(Resende|Rezende)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
 export const storageService = {
   // Config
   getConfig(): SiteConfig {
+    if (cachedConfig) {
+      return cachedConfig;
+    }
+
+    if (typeof localStorage === 'undefined') {
+      return DEFAULT_CONFIG;
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.CONFIG);
       if (stored) {
-        const migrated = stored.replace(/Rezende/g, 'Resende');
-        const parsed = JSON.parse(migrated);
+        // Strip out any occurrences of Resende or Rezende from stored data
+        const cleanedStored = stored
+          .replace(/Mariana\s+(Resende|Rezende)/gi, 'Mariana')
+          .replace(/\b(Resende|Rezende)\b/gi, '')
+          .replace(/\s{2,}/g, ' ');
+
+        const parsed = JSON.parse(cleanedStored);
         const merged: SiteConfig = { ...DEFAULT_CONFIG, ...parsed };
 
-        // Ensure carouselImages is populated with valid working photos
-        if (!merged.carouselImages || merged.carouselImages.length === 0) {
-          merged.carouselImages = DEFAULT_CONFIG.carouselImages;
-        } else {
-          merged.carouselImages = merged.carouselImages.map((img) => ({
+        // Ensure carouselImages reflects saved images without losing user uploads
+        if (Array.isArray(parsed.carouselImages)) {
+          merged.carouselImages = parsed.carouselImages.map((img: any) => ({
             ...img,
-            url: mapLegacyAssetUrl(img.url),
+            title: sanitizeText(img.title || ''),
+            url: resolveImageUrl(img.url, 'portrait'),
           }));
+        } else {
+          merged.carouselImages = DEFAULT_CONFIG.carouselImages;
         }
 
-        // Map legacy URLs in galleryPhotos
-        if (!merged.galleryPhotos || merged.galleryPhotos.length === 0) {
-          merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
-        } else {
-          merged.galleryPhotos = merged.galleryPhotos.map((img) => ({
+        // Map legacy or path URLs in galleryPhotos
+        if (Array.isArray(parsed.galleryPhotos)) {
+          merged.galleryPhotos = parsed.galleryPhotos.map((img: any) => ({
             ...img,
-            url: mapLegacyAssetUrl(img.url),
+            title: sanitizeText(img.title || ''),
+            url: resolveImageUrl(img.url, 'portrait'),
           }));
+        } else {
+          merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
         }
 
         // Map aboutImageUrl
-        merged.aboutImageUrl = mapLegacyAssetUrl(merged.aboutImageUrl) || DEFAULT_CONFIG.aboutImageUrl;
+        merged.aboutImageUrl = resolveImageUrl(parsed.aboutImageUrl || DEFAULT_CONFIG.aboutImageUrl, 'aboutMe');
 
+        // Sanitize name and text
+        merged.debutanteName = sanitizeText(merged.debutanteName) || 'Mariana';
+        if (merged.aboutText) {
+          merged.aboutText = merged.aboutText
+            .replace(/Mariana\s+(Resende|Rezende)/gi, 'Mariana')
+            .replace(/\b(Resende|Rezende)\b/gi, '');
+        }
+
+        cachedConfig = merged;
         return merged;
       }
     } catch (e) {
       console.warn('Erro ao carregar configurações do localStorage:', e);
     }
+
+    cachedConfig = DEFAULT_CONFIG;
     return DEFAULT_CONFIG;
   },
 
-  saveConfig(config: SiteConfig): boolean {
+  async loadConfigAsync(): Promise<SiteConfig> {
+    const current = this.getConfig();
     try {
-      localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(config));
-      return true;
+      const idbBackup = await mediaDb.getConfigBackup();
+      if (idbBackup && typeof idbBackup === 'object') {
+        const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...idbBackup };
+        cachedConfig = merged;
+        try {
+          localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(merged));
+        } catch (_) {}
+        return merged;
+      }
     } catch (e) {
-      console.error('Erro ao salvar configurações no localStorage:', e);
-      return false;
+      console.warn('Falha ao carregar backup de configurações do IndexedDB:', e);
     }
+    return current;
+  },
+
+  saveConfig(config: SiteConfig): boolean {
+    const sanitized: SiteConfig = {
+      ...config,
+      debutanteName: sanitizeText(config.debutanteName) || 'Mariana',
+      aboutText: (config.aboutText || '')
+        .replace(/Mariana\s+(Resende|Rezende)/gi, 'Mariana')
+        .replace(/\b(Resende|Rezende)\b/gi, ''),
+    };
+
+    // Update memory cache immediately
+    cachedConfig = sanitized;
+
+    let savedInLocal = false;
+    try {
+      localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(sanitized));
+      savedInLocal = true;
+    } catch (e) {
+      console.warn('Aviso: localStorage atingiu o limite ou falhou. Salvando backup no IndexedDB...', e);
+    }
+
+    // Always persist to IndexedDB asynchronously as an immutable backup
+    mediaDb.saveConfigBackup(sanitized).catch((err) => {
+      console.warn('Aviso ao salvar backup no IndexedDB:', err);
+    });
+
+    // Notify all active listeners across the app
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('xv_config_saved', { detail: sanitized }));
+      } catch (_) {}
+    }
+
+    // Return true if saved in either localStorage or cached
+    return true;
   },
 
   resetConfig(): SiteConfig {
     try {
       localStorage.removeItem(STORAGE_KEYS.CONFIG);
+      cachedConfig = DEFAULT_CONFIG;
+      mediaDb.saveConfigBackup(DEFAULT_CONFIG).catch(() => {});
     } catch (e) {
       console.error(e);
     }
@@ -314,7 +386,7 @@ export const storageService = {
       link.setAttribute('href', encodedUri);
       link.setAttribute(
         'download',
-        `confirmacoes_xv_mari_mariana_resende_${new Date().toISOString().slice(0, 10)}.csv`
+        `confirmacoes_xv_mari_mariana_${new Date().toISOString().slice(0, 10)}.csv`
       );
       document.body.appendChild(link);
       link.click();

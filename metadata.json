@@ -1,6 +1,6 @@
 {
-  "name": "XV da Mari — Mariana Resende",
-  "description": "Site de convite digital e confirmação de presença para o aniversário de 15 anos de Mariana Resende.",
+  "name": "XV da Mari — Mariana",
+  "description": "Site de convite digital e confirmação de presença para o aniversário de 15 anos de Mariana.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
