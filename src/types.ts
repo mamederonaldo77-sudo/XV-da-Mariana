@@ -1,6 +1,7 @@
 export type PageRoute =
   | 'inicio'
   | 'meus-15-anos'
+  | 'traje-sugerido'
   | 'nossa-promessa'
   | 'presentes'
   | 'recados'
@@ -96,4 +97,14 @@ export interface SiteConfig {
   carouselImages: CarouselImage[];
   galleryPhotos: GalleryPhoto[];
   giftItems: GiftItem[];
+
+  // Traje Sugerido
+  dressCodeTitle?: string;
+  dressCodeSubtitle?: string;
+  dressCodeType?: string;
+  dressCodeQuote?: string;
+  dressCodeDescription?: string;
+  dressCodeImageUrl?: string;
+
+  _configVersion?: number;
 }

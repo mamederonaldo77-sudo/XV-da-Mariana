@@ -13,6 +13,7 @@ import { CountdownSection } from './components/CountdownSection';
 import { AboutMeSection } from './components/AboutMeSection';
 import { NossaPromessaSection } from './components/NossaPromessaSection';
 import { VideoSection } from './components/VideoSection';
+import { DressCodeSection } from './components/DressCodeSection';
 import { GiftsSection } from './components/GiftsSection';
 import { GallerySection } from './components/GallerySection';
 import { GuestbookSection } from './components/GuestbookSection';
@@ -20,12 +21,14 @@ import { RsvpSection } from './components/RsvpSection';
 import { Footer } from './components/Footer';
 import { AdminModal } from './components/AdminModal';
 import { FloatingMusicPlayer } from './components/FloatingMusicPlayer';
+import ifOnlyAudio from './assets/audio/if-only-instrumental.mp3';
 
 function parseRouteFromHash(): PageRoute {
   const hash = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
   const validRoutes: PageRoute[] = [
     'inicio',
     'meus-15-anos',
+    'traje-sugerido',
     'nossa-promessa',
     'presentes',
     'recados',
@@ -52,8 +55,10 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Romantic celebration royalty-free piano stream
-    const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112199.mp3');
+    // "If Only" - Dove Cameron (Instrumental Piano)
+    const baseUrl = (import.meta.env.BASE_URL || './').replace(/\/$/, '');
+    const fallbackAudioUrl = baseUrl === '' || baseUrl === '.' ? './audio/if-only-instrumental.mp3' : `${baseUrl}/audio/if-only-instrumental.mp3`;
+    const audio = new Audio(ifOnlyAudio || fallbackAudioUrl);
     audio.loop = true;
     audio.volume = 0.35;
     audioRef.current = audio;
@@ -185,20 +190,6 @@ export default function App() {
               partyDateIso={config.partyDateIso}
               debutanteName={config.debutanteName}
             />
-
-            {/* Vídeo do convite exibido com elegância */}
-            <VideoSection
-              videoUrl={config.videoUrl}
-              onOpenAdmin={() => setIsAdminOpen(true)}
-            />
-
-            {/* Mensagem da Debutante */}
-            <AboutMeSection
-              title={config.aboutTitle}
-              text={config.aboutText}
-              imageUrl={config.aboutImageUrl}
-              debutanteName={config.debutanteName}
-            />
           </div>
         )}
 
@@ -207,7 +198,7 @@ export default function App() {
           <div key="page-meus-15-anos" className="animate-fade-in flex flex-col gap-4">
             {/* Convite em vídeo no início da página */}
             <VideoSection
-              videoUrl={config.videoUrl}
+              videoUrl={config.videoUrl || 'Convite-videomp4.mp4'}
               onOpenAdmin={() => setIsAdminOpen(true)}
             />
 
@@ -215,13 +206,23 @@ export default function App() {
             <AboutMeSection
               title={config.aboutTitle}
               text={config.aboutText}
-              imageUrl={config.aboutImageUrl}
+              imageUrl={config.aboutImageUrl || '/images/galeria-3.jpeg'}
               debutanteName={config.debutanteName}
             />
           </div>
         )}
 
-        {/* PAGE 3: Nossa Promessa - Preservada exatamente como aprovada */}
+        {/* PAGE 3: Traje Sugerido (Dress Code Oficial) */}
+        {currentPage === 'traje-sugerido' && (
+          <div key="page-traje-sugerido" className="animate-fade-in flex flex-col gap-4">
+            <DressCodeSection
+              debutanteName={config.debutanteName}
+              imageUrl={config.dressCodeImageUrl}
+            />
+          </div>
+        )}
+
+        {/* PAGE 4: Nossa Promessa - Preservada exatamente como aprovada */}
         {currentPage === 'nossa-promessa' && (
           <div key="page-nossa-promessa" className="animate-fade-in flex flex-col gap-4">
             <NossaPromessaSection

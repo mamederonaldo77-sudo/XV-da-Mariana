@@ -10,9 +10,11 @@ interface VideoSectionProps {
 
 export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmin }) => {
   const [resolvedVideoSrc, setResolvedVideoSrc] = useState<string>('');
+  const [allSourcesFailed, setAllSourcesFailed] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
+    setAllSourcesFailed(false);
 
     if (!videoUrl || videoUrl.trim() === '') {
       setResolvedVideoSrc('');
@@ -27,8 +29,19 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
           setResolvedVideoSrc(blobUrl || '');
         }
       });
-    } else {
+    } else if (
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('blob:') ||
+      trimmed.startsWith('data:')
+    ) {
       setResolvedVideoSrc(trimmed);
+    } else {
+      // Local file reference like Convite-videomp4.mp4 or videos/Convite-videomp4.mp4
+      const cleanPath = trimmed.replace(/^\.?\//, '').replace(/^public\//, '');
+      const baseUrl = (import.meta.env.BASE_URL || './').replace(/\/$/, '');
+      const resolved = baseUrl === '' || baseUrl === '.' ? `./${cleanPath}` : `${baseUrl}/${cleanPath}`;
+      setResolvedVideoSrc(resolved);
     }
 
     return () => {
@@ -36,7 +49,9 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
     };
   }, [videoUrl]);
 
-  const isYouTube = resolvedVideoSrc && (resolvedVideoSrc.includes('youtube.com') || resolvedVideoSrc.includes('youtu.be'));
+  const isYouTube =
+    resolvedVideoSrc &&
+    (resolvedVideoSrc.includes('youtube.com') || resolvedVideoSrc.includes('youtu.be'));
   const isVimeo = resolvedVideoSrc && resolvedVideoSrc.includes('vimeo.com');
 
   const getYouTubeEmbedUrl = (url: string) => {
@@ -57,6 +72,38 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
   };
 
   const hasVideo = Boolean(resolvedVideoSrc && resolvedVideoSrc.trim() !== '');
+
+  // Generate robust candidate paths so whichever filename was pushed to GitHub public/ is played
+  const baseUrl = (import.meta.env.BASE_URL || './').replace(/\/$/, '');
+  const prefix = baseUrl === '' || baseUrl === '.' ? '.' : baseUrl;
+
+  const candidateSources = React.useMemo(() => {
+    if (!resolvedVideoSrc || isYouTube || isVimeo || resolvedVideoSrc.startsWith('blob:') || resolvedVideoSrc.startsWith('data:')) {
+      return resolvedVideoSrc ? [resolvedVideoSrc] : [];
+    }
+
+    const list = [
+      resolvedVideoSrc,
+      `${prefix}/Convite-videomp4.mp4`,
+      `${prefix}/Convite-video.mp4`,
+      `${prefix}/videos/Convite-videomp4.mp4`,
+      `${prefix}/videos/Convite-video.mp4`,
+      `${prefix}/convite-video.mp4`,
+      `${prefix}/videos/convite-video.mp4`,
+      `${prefix}/Convite.mp4`,
+      `${prefix}/videos/Convite.mp4`,
+      './Convite-videomp4.mp4',
+      './Convite-video.mp4',
+      './videos/Convite-videomp4.mp4',
+      './videos/Convite-video.mp4',
+      '/Convite-videomp4.mp4',
+      '/Convite-video.mp4',
+      '/videos/Convite-videomp4.mp4',
+      '/videos/Convite-video.mp4',
+    ];
+
+    return list.filter((v, i, a) => v && a.indexOf(v) === i);
+  }, [resolvedVideoSrc, prefix, isYouTube, isVimeo]);
 
   return (
     <section
@@ -95,13 +142,42 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowFullScreen
               />
+            ) : allSourcesFailed ? (
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[#2B2333] text-white">
+                <Film className="w-8 h-8 text-[#C9B4D9] mb-2" />
+                <p className="font-serif-luxury text-base font-semibold text-[#E7DDEB]">
+                  Vídeo-Convite
+                </p>
+                <p className="text-xs text-[#B9B5C4] mt-1 max-w-sm">
+                  O arquivo de vídeo está configurado. Se desejar alterá-lo ou fazer upload direto de um novo vídeo, use o botão abaixo.
+                </p>
+                <button
+                  onClick={onOpenAdmin}
+                  className="mt-3 px-4 py-2 rounded-full bg-[#C9B4D9] text-[#3D2E47] text-xs font-semibold hover:bg-[#ded1e4] cursor-pointer shadow-md"
+                >
+                  Gerenciar Vídeo no Painel
+                </button>
+              </div>
             ) : (
               <video
-                src={resolvedVideoSrc}
+                key={resolvedVideoSrc}
                 controls
                 playsInline
+                preload="metadata"
                 className="w-full h-full object-contain"
               >
+                {candidateSources.map((srcUrl, idx) => (
+                  <source
+                    key={srcUrl}
+                    src={srcUrl}
+                    type="video/mp4"
+                    onError={() => {
+                      if (idx === candidateSources.length - 1) {
+                        setAllSourcesFailed(true);
+                      }
+                    }}
+                  />
+                ))}
                 Seu navegador não suporta a reprodução deste vídeo.
               </video>
             )}
@@ -122,7 +198,7 @@ export const VideoSection: React.FC<VideoSectionProps> = ({ videoUrl, onOpenAdmi
               onClick={onOpenAdmin}
               className="mt-4 text-[11px] text-[#A49AAA] hover:text-[#5D5068] underline underline-offset-2 cursor-pointer"
             >
-              Fazer upload do vídeo no painel
+              Configurar vídeo no painel
             </button>
           </div>
         )}

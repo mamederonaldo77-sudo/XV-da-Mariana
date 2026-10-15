@@ -26,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navItems: { id: PageRoute; label: string; isPrimary?: boolean }[] = [
     { id: 'inicio', label: 'Início' },
+    { id: 'meus-15-anos', label: 'Meus 15 Anos' },
+    { id: 'traje-sugerido', label: 'Traje Sugerido' },
     { id: 'nossa-promessa', label: 'Nossa Promessa' },
     { id: 'presentes', label: 'Presentes' },
     { id: 'recados', label: 'Recados' },
@@ -83,9 +85,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
 
-        {/* Main Name "XV da Mari" and Full Name */}
+        {/* Main Name "XV Mari" and Full Name */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif-luxury font-semibold tracking-wide text-[#5D5068] mt-1">
-          {pageTitle}
+          {pageTitle ? pageTitle.replace(/XV da Mari/gi, 'XV Mari') : 'XV Mari'}
         </h1>
         <p className="text-sm sm:text-base font-serif-luxury tracking-widest uppercase text-[#A49AAA] mt-0.5">
           {debutanteName}

@@ -8,7 +8,7 @@ import {
   X, Lock, KeyRound, Save, CheckCircle, Trash2, Plus, Edit2, Upload,
   Download, RefreshCw, Eye, MessageSquare, Users, Gift, Image as ImageIcon,
   Film, MapPin, Calendar, Phone, Sparkles, ExternalLink, HelpCircle,
-  ArrowUp, ArrowDown, QrCode, Play, Loader2
+  ArrowUp, ArrowDown, QrCode, Play, Loader2, Copy, FileSpreadsheet
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -364,9 +364,26 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     onRsvpsUpdated(updated);
   };
 
-  // Export CSV of RSVPs
+  const [copiedSheetsData, setCopiedSheetsData] = useState(false);
+
+  // Export CSV of RSVPs formatted for Google Sheets
   const handleExportRsvpCsv = () => {
     storageService.exportCsvRsvps();
+  };
+
+  const handleCopyForGoogleSheets = () => {
+    const tsv = storageService.getRsvpsAsTsv();
+    if (!tsv) {
+      alert('Nenhuma confirmação de presença registrada ainda.');
+      return;
+    }
+    navigator.clipboard.writeText(tsv);
+    setCopiedSheetsData(true);
+    setTimeout(() => setCopiedSheetsData(false), 3000);
+  };
+
+  const handleOpenGoogleSheets = () => {
+    window.open('https://sheets.new', '_blank');
   };
 
   // Change Admin PIN
@@ -769,6 +786,36 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           onChange={(e) =>
                             handleFileUpload(e, (base64) =>
                               setFormData({ ...formData, aboutImageUrl: base64 })
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Guia de Traje Sugerido */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#82758D] mb-1">
+                      Cartão / Imagem do Traje Sugerido (Dress Code)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={formData.dressCodeImageUrl || 'images/guia-traje-sugerido.jpg'}
+                        onChange={(e) => setFormData({ ...formData, dressCodeImageUrl: e.target.value })}
+                        placeholder="URL da imagem ou faça upload"
+                        className="flex-1 px-3 py-2 rounded-xl border border-[#B9B5C4]/60 text-sm focus:border-[#C9B4D9] outline-hidden"
+                      />
+                      <label className="px-3.5 py-2 rounded-xl bg-[#E7DDEB] hover:bg-[#ded1e4] text-[#5D5068] text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleFileUpload(e, (base64) =>
+                              setFormData({ ...formData, dressCodeImageUrl: base64 })
                             )
                           }
                         />
@@ -1462,13 +1509,54 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       </p>
                     </div>
 
-                    <button
-                      onClick={handleExportRsvpCsv}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F8] border border-[#B9B5C4] text-xs font-semibold text-[#5D5068] shadow-2xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Exportar CSV</span>
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={handleExportRsvpCsv}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs cursor-pointer transition-colors"
+                        title="Baixar arquivo CSV compatível com Google Planilhas e Excel"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>Exportar p/ Google Sheets (CSV)</span>
+                      </button>
+
+                      <button
+                        onClick={handleCopyForGoogleSheets}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F8] border border-[#B9B5C4] text-xs font-semibold text-[#5D5068] shadow-2xs cursor-pointer transition-colors"
+                        title="Copiar dados formatados para colar direto no Google Sheets (Ctrl+V)"
+                      >
+                        {copiedSheetsData ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-700 font-bold">Copiado p/ Colar!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-[#5D5068]" />
+                            <span>Copiar Linhas p/ Sheets</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={handleOpenGoogleSheets}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E7DDEB] hover:bg-[#ded1e4] border border-[#B9B5C4]/40 text-xs font-semibold text-[#3D2E47] shadow-2xs cursor-pointer transition-colors"
+                        title="Abrir uma nova planilha no Google Sheets em nova aba"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-[#5D5068]" />
+                        <span>Abrir Planilha</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Informative banner on Google Sheets integration */}
+                  <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-2.5 text-xs text-[#166534]">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">Exportação direta para o Google Planilhas:</p>
+                      <p className="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
+                        Clique em <strong>Exportar p/ Google Sheets (CSV)</strong> para baixar o arquivo pronto com acentuação e formato brasileiro UTF-8, ou clique em <strong>Copiar Linhas</strong>, abra o Google Planilhas e aperte <strong>Ctrl+V</strong> para preencher automaticamente as colunas de convidados!
+                      </p>
+                    </div>
                   </div>
 
                   {rsvps.length === 0 ? (

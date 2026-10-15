@@ -4,7 +4,7 @@ import { mediaDb } from './mediaDb';
 
 export const DEFAULT_CONFIG: SiteConfig = {
   debutanteName: 'Mariana',
-  pageTitle: 'XV da Mari',
+  pageTitle: 'XV Mari',
   heroSubheading: 'Meus 15 Anos',
   partyTitle: 'Minha Festa de 15 Anos',
   partyDateIso: '2026-11-13T20:00:00-03:00',
@@ -22,19 +22,19 @@ export const DEFAULT_CONFIG: SiteConfig = {
 
   aboutTitle: 'Sobre mim',
   aboutText: `Meu nome é Mariana e estou vivendo uma fase muito especial da minha vida. Completar 15 anos é celebrar minhas histórias, meus sonhos, minha família e todas as pessoas que fazem parte da minha caminhada.\n\nQuero compartilhar esse momento tão importante com pessoas especiais e guardar para sempre as lembranças desse dia.\n\nSerá uma alegria ter você comigo nessa celebração!`,
-  aboutImageUrl: DEFAULT_IMAGE_PATHS.aboutMe,
+  aboutImageUrl: '/images/galeria-3.jpeg',
 
   // Nossa Promessa
   promiseTitle: 'Nossa Promessa',
   promiseText: 'Prometo guardar no coração cada sorriso, cada abraço e cada pessoa que caminha comigo. Que este dia seja repleto de amor, gratidão e magia!\n\nCelebrar meus 15 anos é honrar a promessa de espalhar alegria, carinho e nunca esquecer de onde vim e de todos que amo.',
 
-  videoUrl: '', // Deixar vazio por padrão: "Nosso convite em vídeo estará disponível em breve"
+  videoUrl: 'Convite-videomp4.mp4',
 
   giftsTitle: 'Presentes & Lista de Desejos',
   giftsSubtitle: 'Se desejar me presentear, deixo aqui algumas opções. O mais importante é a sua presença e o seu carinho!',
   pixTitle: 'Contribuição dos Sonhos (Pix)',
   pixMessage: 'Se desejar me presentear de forma voluntária e contribuir com a realização dos sonhos dos meus 15 anos, deixo aqui a opção de Pix. Sua presença e seu carinho são os maiores presentes!',
-  pixKey: '',
+  pixKey: '21964335354',
   pixQrCodeUrl: '',
   externalGiftListTitle: 'Minha Lista de Presentes',
   externalGiftListDescription: 'Para quem preferir escolher um presente especial, preparei uma lista em uma loja parceira.',
@@ -44,69 +44,76 @@ export const DEFAULT_CONFIG: SiteConfig = {
   carouselImages: [
     {
       id: 'c1',
-      url: DEFAULT_IMAGE_PATHS.portrait,
+      url: 'images/carrossel-1.jpeg',
       title: 'Mariana',
-      caption: 'XV da Mari — Celebrando 15 anos de sonhos e encantos',
-      alt: 'Mariana com vestido lilás e tiara delicada',
+      caption: 'XV Mari — Celebrando 15 anos de sonhos e encantos',
+      alt: 'Mariana com vestido e tiara delicada',
     },
     {
       id: 'c2',
-      url: DEFAULT_IMAGE_PATHS.garden,
+      url: 'images/carrossel-2.jpeg',
       title: 'Jardim Encantado',
       caption: 'Momentos inesquecíveis iluminados pelo luar',
-      alt: 'Mariana caminhando no jardim com vestido lilás fluido',
+      alt: 'Mariana caminhando no jardim',
     },
     {
       id: 'c3',
-      url: DEFAULT_IMAGE_PATHS.waltz,
+      url: 'images/carrossel-3.jpeg',
       title: 'A Grande Valsa',
       caption: 'A magia de dançar o início de um novo capítulo',
-      alt: 'Mariana dançando com vestido de baile lilás brilhante',
+      alt: 'Mariana dançando com vestido de baile',
+    },
+    {
+      id: 'c4',
+      url: 'images/carrossel-4.jpeg',
+      title: 'Momento Especial',
+      caption: 'A alegria de comemorar com quem amamos',
+      alt: 'Mariana celebrando seus 15 anos',
     },
   ],
 
   galleryPhotos: [
     {
       id: 'g1',
-      url: DEFAULT_IMAGE_PATHS.portrait,
-      title: 'Retrato da Debutante',
-      category: 'Ensaio',
-      alt: 'Ensaio fotográfico de Mariana com tiara e flores lilás',
+      url: 'images/galeria-1.jpeg',
+      title: 'Decoração e Flores',
+      category: 'Detalhes',
+      alt: 'Mesa de banquete com hortênsias lilás e velas',
     },
     {
       id: 'g2',
-      url: DEFAULT_IMAGE_PATHS.garden,
-      title: 'Noite Iluminada',
+      url: 'images/galeria-2.jpeg',
+      title: 'Jardim Iluminado',
       category: 'Ensaio',
-      alt: 'Mariana no jardim iluminado por lanternas',
+      alt: 'Mariana no jardim florido',
     },
     {
       id: 'g3',
-      url: DEFAULT_IMAGE_PATHS.waltz,
-      title: 'Salão Real',
-      category: 'Celebração',
-      alt: 'Salão de baile com vestido lilás',
+      url: 'images/galeria-3.jpeg',
+      title: 'Sobre Mim',
+      category: 'Retrato',
+      alt: 'Mariana com sorriso meigo',
     },
     {
       id: 'g4',
-      url: DEFAULT_IMAGE_PATHS.aboutMe,
-      title: 'Sorriso Espontâneo',
-      category: 'Retrato',
-      alt: 'Mariana sorrindo com look suave',
+      url: 'images/galeria-4.jpeg',
+      title: 'Retrato da Debutante',
+      category: 'Ensaio',
+      alt: 'Retrato clássico com vestido e tiara',
     },
     {
       id: 'g5',
-      url: DEFAULT_IMAGE_PATHS.decor,
-      title: 'Decoração e Flores',
-      category: 'Detalhes',
-      alt: 'Mesa de banquete com hortênsias lilás e candelabros prateados',
+      url: 'images/galeria-5.jpeg',
+      title: 'Salão Real',
+      category: 'Celebração',
+      alt: 'Mariana no salão de baile',
     },
     {
       id: 'g6',
-      url: DEFAULT_IMAGE_PATHS.shoes,
+      url: 'images/galeria-6.jpeg',
       title: 'Brilho e Detalhes',
       category: 'Detalhes',
-      alt: 'Salto prateado com brilho, fita lilás e tiara de cristal',
+      alt: 'Salto prateado e detalhes da comemoração',
     },
   ],
 
@@ -130,6 +137,14 @@ export const DEFAULT_CONFIG: SiteConfig = {
       description: 'Se desejar contribuir com qualquer valor para a celebração dos meus 15 anos.',
     },
   ],
+
+  // Traje Sugerido
+  dressCodeTitle: 'Traje Sugerido',
+  dressCodeSubtitle: 'Guia visual e inspirações para celebrar essa data tão inesquecível',
+  dressCodeType: 'Passeio Completo',
+  dressCodeQuote: '“Uma noite especial merece uma produção à altura.”',
+  dressCodeDescription: 'Para celebrar comigo, escolha um visual elegante e festivo. Sugerimos traje passeio completo, com peças bem alinhadas e acabamento sofisticado.',
+  dressCodeImageUrl: 'images/guia-traje-sugerido.jpg',
 };
 
 const STORAGE_KEYS = {
@@ -174,33 +189,79 @@ export const storageService = {
         const parsed = JSON.parse(cleanedStored);
         const merged: SiteConfig = { ...DEFAULT_CONFIG, ...parsed };
 
-        // Ensure carouselImages reflects saved images without losing user uploads
-        if (Array.isArray(parsed.carouselImages)) {
-          merged.carouselImages = parsed.carouselImages.map((img: any) => ({
-            ...img,
-            title: sanitizeText(img.title || ''),
-            url: resolveImageUrl(img.url, 'portrait'),
-          }));
-        } else {
-          merged.carouselImages = DEFAULT_CONFIG.carouselImages;
-        }
+        // Check if config version needs upgrade to ensure new requested images are loaded
+        const configVersion = parsed._configVersion || 1;
+        const CURRENT_VERSION = 4;
 
-        // Map legacy or path URLs in galleryPhotos
-        if (Array.isArray(parsed.galleryPhotos)) {
-          merged.galleryPhotos = parsed.galleryPhotos.map((img: any) => ({
-            ...img,
-            title: sanitizeText(img.title || ''),
-            url: resolveImageUrl(img.url, 'portrait'),
-          }));
-        } else {
-          merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
-        }
+        // If version is older, ensure the new requested carousel, gallery photos and dress code guide are applied
+        if (configVersion < CURRENT_VERSION) {
+          // If the stored carousel only has standard/default photos (not custom data URIs), update to new 4 photos
+          const hasCustomCarousel = Array.isArray(parsed.carouselImages) && parsed.carouselImages.some((img: any) => img.url?.startsWith('data:'));
+          if (!hasCustomCarousel) {
+            merged.carouselImages = DEFAULT_CONFIG.carouselImages;
+          }
 
-        // Map aboutImageUrl
-        merged.aboutImageUrl = resolveImageUrl(parsed.aboutImageUrl || DEFAULT_CONFIG.aboutImageUrl, 'aboutMe');
+          // If the stored gallery only has standard/default photos, update to new 6 photos
+          const hasCustomGallery = Array.isArray(parsed.galleryPhotos) && parsed.galleryPhotos.some((img: any) => img.url?.startsWith('data:'));
+          if (!hasCustomGallery) {
+            merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
+          }
+
+          // Update aboutImageUrl if not custom data URI
+          if (!parsed.aboutImageUrl?.startsWith('data:')) {
+            merged.aboutImageUrl = DEFAULT_CONFIG.aboutImageUrl;
+          }
+
+          if (!parsed.dressCodeImageUrl?.startsWith('data:')) {
+            merged.dressCodeImageUrl = DEFAULT_CONFIG.dressCodeImageUrl;
+          }
+
+          merged.videoUrl = 'Convite-videomp4.mp4';
+          merged._configVersion = CURRENT_VERSION;
+        } else {
+          // Ensure carouselImages reflects saved images without losing user uploads
+          if (Array.isArray(parsed.carouselImages)) {
+            merged.carouselImages = parsed.carouselImages.map((img: any) => ({
+              ...img,
+              title: sanitizeText(img.title || ''),
+              url: resolveImageUrl(img.url, 'portrait'),
+            }));
+          } else {
+            merged.carouselImages = DEFAULT_CONFIG.carouselImages;
+          }
+
+          // Map legacy or path URLs in galleryPhotos
+          if (Array.isArray(parsed.galleryPhotos)) {
+            merged.galleryPhotos = parsed.galleryPhotos.map((img: any) => ({
+              ...img,
+              title: sanitizeText(img.title || ''),
+              url: resolveImageUrl(img.url, 'portrait'),
+            }));
+          } else {
+            merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
+          }
+
+          // Map aboutImageUrl
+          merged.aboutImageUrl = resolveImageUrl(parsed.aboutImageUrl || DEFAULT_CONFIG.aboutImageUrl, 'aboutMe');
+
+          // Map dressCodeImageUrl
+          merged.dressCodeImageUrl = resolveImageUrl(parsed.dressCodeImageUrl || DEFAULT_CONFIG.dressCodeImageUrl, 'dressCodeGuide');
+        }
 
         // Sanitize name and text
         merged.debutanteName = sanitizeText(merged.debutanteName) || 'Mariana';
+        if (merged.pageTitle === 'XV da Mari' || !merged.pageTitle) {
+          merged.pageTitle = 'XV Mari';
+        }
+        if (!merged.pixKey || merged.pixKey.trim() === '') {
+          merged.pixKey = '21964335354';
+        }
+        if (!merged.videoUrl || merged.videoUrl.trim() === '') {
+          merged.videoUrl = 'Convite-videomp4.mp4';
+        }
+        if (!merged.aboutImageUrl || merged.aboutImageUrl.includes('mari_about_me')) {
+          merged.aboutImageUrl = 'images/galeria-3.jpeg';
+        }
         if (merged.aboutText) {
           merged.aboutText = merged.aboutText
             .replace(/Mariana\s+(Resende|Rezende)/gi, 'Mariana')
@@ -372,30 +433,49 @@ export const storageService = {
         alert('Nenhuma confirmação de presença registrada ainda.');
         return false;
       }
-      const headers = ['Nome do Convidado', 'Telefone', 'Data/Hora da Confirmação'];
+      const headers = ['Nome do Convidado', 'Telefone', 'Acompanhantes', 'Mensagem/Observações', 'Canal', 'Data/Hora'];
       const rows = rsvps.map((r) => [
-        `"${r.guestName.replace(/"/g, '""')}"`,
+        `"${(r.guestName || '').replace(/"/g, '""')}"`,
         `"${(r.phone || '').replace(/"/g, '""')}"`,
+        `"${r.guestCount ?? 1}"`,
+        `"${(r.notes || '').replace(/"/g, '""')}"`,
+        `"${r.confirmedVia === 'whatsapp' ? 'WhatsApp' : 'Site'}"`,
         `"${new Date(r.createdAt).toLocaleString('pt-BR')}"`,
       ]);
       const csvContent =
-        'data:text/csv;charset=utf-8,\uFEFF' +
-        [headers.join(';'), ...rows.map((e) => e.join(';'))].join('\n');
-      const encodedUri = encodeURI(csvContent);
+        '\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
+      link.setAttribute('href', url);
       link.setAttribute(
         'download',
-        `confirmacoes_xv_mari_mariana_${new Date().toISOString().slice(0, 10)}.csv`
+        `confirmacoes_xv_mari_google_sheets_${new Date().toISOString().slice(0, 10)}.csv`
       );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       return true;
     } catch (e) {
       console.error('Erro ao exportar CSV:', e);
       return false;
     }
+  },
+
+  getRsvpsAsTsv(): string {
+    const rsvps = this.getRsvps();
+    if (rsvps.length === 0) return '';
+    const headers = ['Nome do Convidado', 'Telefone', 'Acompanhantes', 'Mensagem/Observações', 'Canal', 'Data/Hora'];
+    const rows = rsvps.map((r) => [
+      r.guestName || '',
+      r.phone || '',
+      String(r.guestCount ?? 1),
+      r.notes || '',
+      r.confirmedVia === 'whatsapp' ? 'WhatsApp' : 'Site',
+      new Date(r.createdAt).toLocaleString('pt-BR'),
+    ]);
+    return [headers.join('\t'), ...rows.map((e) => e.join('\t'))].join('\n');
   },
 
   // Admin PIN / Password (default "mari15")

@@ -3,6 +3,8 @@ import { GiftItem } from '../types';
 import { Gift, QrCode, ExternalLink, Copy, Check, Sparkles, Heart, HelpCircle } from 'lucide-react';
 import { SoftHeart, CornerFlourish, SilverDivider } from './Ornaments';
 
+import { generatePixPayload, getPixQrCodeUrl } from '../utils/pixPayload';
+
 interface GiftsSectionProps {
   title: string;
   subtitle: string;
@@ -33,6 +35,12 @@ export const GiftsSection: React.FC<GiftsSectionProps> = ({
   onOpenAdmin,
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [copiedPayload, setCopiedPayload] = useState<boolean>(false);
+
+  // Set default PIX key 21964335354 as requested by the user
+  const effectivePixKey = pixKey && pixKey.trim().length > 0 ? pixKey.trim() : '21964335354';
+
+  const pixPayload = generatePixPayload(effectivePixKey, 'Mariana', 'Rio de Janeiro');
 
   const handleCopyPix = (key: string) => {
     navigator.clipboard.writeText(key);
@@ -40,15 +48,20 @@ export const GiftsSection: React.FC<GiftsSectionProps> = ({
     setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  const hasPix = Boolean(pixKey && pixKey.trim().length > 0);
+  const handleCopyPayload = () => {
+    if (!pixPayload) return;
+    navigator.clipboard.writeText(pixPayload);
+    setCopiedPayload(true);
+    setTimeout(() => setCopiedPayload(false), 2500);
+  };
+
+  const hasPix = true; // Always active with key 21964335354
   const hasExternalList = Boolean(externalGiftListUrl && externalGiftListUrl.trim().length > 0);
 
-  // Generate dynamic QR Code for PIX key if no custom image was uploaded
+  // Generate dynamic QR Code for PIX key using the official BACEN EMV BR Code payload
   const qrCodeSrc = pixQrCodeUrl && pixQrCodeUrl.trim().length > 0
     ? pixQrCodeUrl
-    : hasPix
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(pixKey)}`
-    : '';
+    : getPixQrCodeUrl(effectivePixKey, 'Mariana', 'Rio de Janeiro');
 
   return (
     <section
@@ -122,33 +135,55 @@ export const GiftsSection: React.FC<GiftsSectionProps> = ({
                   </div>
                 )}
 
-                {/* Pix Key Display & Copy Button */}
-                <div className="text-left">
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#82758D] mb-1">
-                    Chave Pix
-                  </label>
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F8] border border-[#B9B5C4]/40">
-                    <span className="text-xs sm:text-sm font-mono text-[#5D5068] truncate flex-1 select-all">
-                      {pixKey}
-                    </span>
+                {/* Pix Key Display & Copy Buttons */}
+                <div className="text-left space-y-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#82758D] mb-1">
+                      Chave Pix (Telefone)
+                    </label>
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F8] border border-[#B9B5C4]/40">
+                      <span className="text-xs sm:text-sm font-mono font-semibold text-[#3D2E47] truncate flex-1 select-all">
+                        {effectivePixKey}
+                      </span>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => handleCopyPix(pixKey)}
-                    className="mt-3 w-full py-2.5 px-4 rounded-full bg-[#C9B4D9] hover:bg-[#bfa5d1] text-[#3D2E47] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
-                  >
-                    {copiedKey === pixKey ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-700" />
-                        <span className="text-emerald-800 font-bold">Chave Pix Copiada com Sucesso!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 text-[#3D2E47]" />
-                        <span>Copiar Chave Pix</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <button
+                      onClick={() => handleCopyPix(effectivePixKey)}
+                      className="w-full py-2.5 px-3 rounded-full bg-[#C9B4D9] hover:bg-[#bfa5d1] text-[#3D2E47] text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    >
+                      {copiedKey === effectivePixKey ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-700" />
+                          <span className="text-emerald-800 font-bold">Chave Copiada!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-[#3D2E47]" />
+                          <span>Copiar Chave Pix</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleCopyPayload}
+                      className="w-full py-2.5 px-3 rounded-full bg-[#E7DDEB] hover:bg-[#ded1e4] text-[#5D5068] text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer border border-[#B9B5C4]/40"
+                      title="Código completo para colar no app do banco"
+                    >
+                      {copiedPayload ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-700" />
+                          <span className="text-emerald-800 font-bold">Copia e Cola Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <QrCode className="w-3.5 h-3.5 text-[#5D5068]" />
+                          <span>Pix Copia e Cola</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
