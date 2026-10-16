@@ -2,20 +2,60 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CarouselImage } from '../types';
 import { ChevronLeft, ChevronRight, Pause, Play, Image as ImageIcon } from 'lucide-react';
 import { CornerFlourish } from './Ornaments';
-import { ASSET_IMAGES, resolveImageUrl, DEFAULT_IMAGE_PATHS } from '../assets/imagesMap';
-import { mediaDb } from '../services/mediaDb';
+import { resolveImageUrl, OFFICIAL_IMAGES } from '../assets/imagesMap';
+
+/**
+ * Permanent, fixed carousel images stored inside the project files.
+ * Guaranteed to display identically for all visitors without using localStorage/IndexedDB.
+ */
+export const PERMANENT_CAROUSEL_IMAGES: CarouselImage[] = [
+  {
+    id: 'c_giro',
+    url: 'public/images/giro1-2.jpeg',
+    title: 'Mariana Amorim',
+    caption: 'XV Mari — O encanto e a magia de viver este sonho',
+    alt: 'Mariana dançando com seu vestido de valsa no salão real',
+  },
+  {
+    id: 'c1',
+    url: 'public/images/car-1.jpeg',
+    title: 'Mariana',
+    caption: 'XV Mari — Celebrando 15 anos de sonhos e encantos',
+    alt: 'Mariana com vestido e tiara delicada',
+  },
+  {
+    id: 'c2',
+    url: 'public/images/car-2.jpeg',
+    title: 'Jardim Encantado',
+    caption: 'Momentos inesquecíveis iluminados pelo luar',
+    alt: 'Mariana caminhando no jardim',
+  },
+  {
+    id: 'c3',
+    url: 'public/images/car-3.jpeg',
+    title: 'A Grande Valsa',
+    caption: 'A magia de dançar o início de um novo capítulo',
+    alt: 'Mariana dançando com vestido de baile',
+  },
+  {
+    id: 'c4',
+    url: 'public/images/car-4.jpeg',
+    title: 'Momento Especial',
+    caption: 'A alegria de comemorar com quem amamos',
+    alt: 'Mariana celebrando seus 15 anos',
+  },
+];
 
 interface HeroCarouselProps {
-  images: CarouselImage[];
+  images?: CarouselImage[];
 }
 
-export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
+export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [imageLoadedState, setImageLoadedState] = useState<Record<string, boolean>>({});
-  const [imageErrorState, setImageErrorState] = useState<Record<string, boolean>>({});
+  const [, setImageErrorState] = useState<Record<string, boolean>>({});
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [resolvedImages, setResolvedImages] = useState<CarouselImage[]>([]);
 
   const touchStartXRef = useRef<number | null>(null);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,36 +77,11 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
     }
   }, []);
 
-  // Ensure safe and normalized list of carousel items
-  const validImages = Array.isArray(images) ? images : [];
-
-  // Resolve any IndexedDB idb: references asynchronously
-  useEffect(() => {
-    let isMounted = true;
-    const resolveList = async () => {
-      const updated = await Promise.all(
-        validImages.map(async (img) => {
-          if (img.url?.startsWith('idb:')) {
-            const blobUrl = await mediaDb.getMediaUrl(img.url);
-            return { ...img, url: blobUrl || DEFAULT_IMAGE_PATHS.portrait };
-          }
-          return img;
-        })
-      );
-      if (isMounted) {
-        setResolvedImages(updated);
-      }
-    };
-    resolveList();
-    return () => {
-      isMounted = false;
-    };
-  }, [validImages]);
-
-  const activeImagesList = resolvedImages.length === validImages.length ? resolvedImages : validImages;
+  // Permanent, fixed images from the project (zero reliance on browser cache/localStorage)
+  const activeImagesList = PERMANENT_CAROUSEL_IMAGES;
   const totalCount = activeImagesList.length;
 
-  // Make sure currentIndex stays within bounds if images are removed
+  // Make sure currentIndex stays within bounds
   useEffect(() => {
     if (totalCount > 0 && currentIndex >= totalCount) {
       setCurrentIndex(0);
@@ -92,18 +107,17 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
     }
   }, [totalCount]);
 
-  // Setup predictable auto-advance timer (4-second interval)
-  // Timer is reset whenever currentIndex changes or isPaused changes
+  // Setup predictable auto-advance timer (4.5-second interval)
   useEffect(() => {
     if (autoPlayTimerRef.current) {
       clearInterval(autoPlayTimerRef.current);
       autoPlayTimerRef.current = null;
     }
 
-    if (!isPaused && totalCount > 1 && !prefersReducedMotion) {
+    if (!isPaused && totalCount > 1) {
       autoPlayTimerRef.current = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % totalCount);
-      }, 4000);
+      }, 4500);
     }
 
     return () => {
@@ -112,11 +126,11 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
         autoPlayTimerRef.current = null;
       }
     };
-  }, [isPaused, totalCount, currentIndex, prefersReducedMotion]);
+  }, [isPaused, totalCount, currentIndex]);
 
-  // Touch Swipe Handlers for mobile and tablet devices
+  // Touch handlers for mobile swipe navigation
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.targetTouches[0].clientX;
+    touchStartXRef.current = e.touches[0].clientX;
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -124,7 +138,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartXRef.current - touchEndX;
 
-    // Minimum swipe threshold of 40px
     if (diff > 40) {
       handleNext(); // swiped left -> next
     } else if (diff < -40) {
@@ -140,11 +153,13 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
   const handleImageError = (id: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageErrorState((prev) => ({ ...prev, [id]: true }));
     const target = e.currentTarget;
-    target.onerror = null; // Prevent infinite fallback loops
-    if (id === 'c2' || id === '1') target.src = ASSET_IMAGES.garden;
-    else if (id === 'c3' || id === '2') target.src = ASSET_IMAGES.waltz;
-    else if (id === 'c4' || id === '3') target.src = ASSET_IMAGES.special;
-    else target.src = ASSET_IMAGES.portrait;
+    target.onerror = null; // Prevent infinite loops
+    if (id === 'c_giro') target.src = OFFICIAL_IMAGES.giro12;
+    else if (id === 'c1') target.src = OFFICIAL_IMAGES.carrossel1;
+    else if (id === 'c2') target.src = OFFICIAL_IMAGES.carrossel2;
+    else if (id === 'c3') target.src = OFFICIAL_IMAGES.carrossel3;
+    else if (id === 'c4') target.src = OFFICIAL_IMAGES.carrossel4;
+    else target.src = OFFICIAL_IMAGES.giro12;
   };
 
   return (
@@ -173,7 +188,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            {/* ESTADO VAZIO DISCRETO (quando nenhuma fotografia estiver cadastrada) */}
+            {/* ESTADO VAZIO DISCRETO */}
             {totalCount === 0 ? (
               <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[#FAF7F8] to-[#E7DDEB]/30">
                 <div className="w-14 h-14 rounded-full bg-[#E7DDEB] flex items-center justify-center text-[#82758D] mb-3 shadow-2xs">
@@ -187,11 +202,14 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
                 </p>
               </div>
             ) : (
-              /* LISTA DE FOTOGRAFIAS CADASTRADAS NO PAINEL */
+              /* LISTA DE FOTOGRAFIAS FIXAS E PERMANENTES DO PROJETO */
               activeImagesList.map((img, idx) => {
                 const isActive = idx === currentIndex;
                 const isLoaded = Boolean(imageLoadedState[img.id || String(idx)]);
-                const resolvedSrc = resolveImageUrl(img.url, idx === 1 ? 'garden' : idx === 2 ? 'waltz' : idx === 3 ? 'special' : 'portrait');
+                const resolvedSrc = resolveImageUrl(
+                  img.url,
+                  idx === 0 ? 'giro' : idx === 1 ? 'portrait' : idx === 2 ? 'garden' : idx === 3 ? 'waltz' : 'special'
+                );
 
                 return (
                   <div
@@ -239,7 +257,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
               })
             )}
 
-            {/* CONTROLES DO CARROSSEL (Somente exibidos quando houver 2 ou mais fotos) */}
+            {/* CONTROLES DO CARROSSEL */}
             {totalCount > 1 && (
               <>
                 {/* Selo Indicador de Posição e Controle de Auto-play */}
@@ -258,48 +276,48 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ images }) => {
                   </button>
                 </div>
 
-                {/* Botão Anterior (Manual) */}
+                {/* Botão Anterior */}
                 <button
                   type="button"
                   onClick={handlePrev}
-                  aria-label="Foto anterior"
-                  title="Foto anterior"
-                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#5D5068] hover:text-[#3D2E47] backdrop-blur-xs flex items-center justify-center transition-all duration-200 border border-[#B9B5C4]/50 shadow-md hover:scale-105 active:scale-95 focus:outline-hidden cursor-pointer"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#4A3B56] hover:text-[#2A1D36] flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer border border-[#B9B5C4]/30"
+                  aria-label="Ver foto anterior"
                 >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
 
-                {/* Botão Próximo (Manual) */}
+                {/* Botão Próximo */}
                 <button
                   type="button"
                   onClick={handleNext}
-                  aria-label="Próxima foto"
-                  title="Próxima foto"
-                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#5D5068] hover:text-[#3D2E47] backdrop-blur-xs flex items-center justify-center transition-all duration-200 border border-[#B9B5C4]/50 shadow-md hover:scale-105 active:scale-95 focus:outline-hidden cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#4A3B56] hover:text-[#2A1D36] flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer border border-[#B9B5C4]/30"
+                  aria-label="Ver próxima foto"
                 >
                   <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
-
-                {/* Indicadores Pontilhados (Navegação Manual por Toque/Clique) */}
-                <div className="absolute bottom-2.5 inset-x-0 z-20 flex justify-center items-center gap-2 pointer-events-auto">
-                  {activeImagesList.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSelectIndex(idx)}
-                      aria-label={`Ir para a fotografia ${idx + 1}`}
-                      className={`rounded-full transition-all duration-300 focus:outline-hidden cursor-pointer ${
-                        idx === currentIndex
-                          ? 'w-7 h-2 bg-white shadow-xs'
-                          : 'w-2 h-2 bg-white/60 hover:bg-white/90'
-                      }`}
-                    />
-                  ))}
-                </div>
               </>
             )}
           </div>
         </div>
+
+        {/* Indicadores de Posição (Bolinhas) */}
+        {totalCount > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-3 select-none">
+            {activeImagesList.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectIndex(idx)}
+                aria-label={`Ir para a foto ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  idx === currentIndex
+                    ? 'w-6 h-2 bg-[#82758D]'
+                    : 'w-2 h-2 bg-[#B9B5C4]/60 hover:bg-[#A49AAA]'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import carrossel1 from './images/car-1.jpeg';
 import carrossel2 from './images/car-2.jpeg';
 import carrossel3 from './images/car-3.jpeg';
 import carrossel4 from './images/car-4.jpeg';
+import giro12 from './images/giro1-2.jpeg';
 import galeria1 from './images/gal-1.jpeg';
 import galeria2 from './images/gal-2.jpeg';
 import galeria3 from './images/gal-3.jpeg';
@@ -11,6 +12,7 @@ import galeria6 from './images/gal-6.jpeg';
 import guiaTrajeImg from './images/guia_traje_mari_1792084852049.jpg';
 
 export const OFFICIAL_IMAGES = {
+  giro12,
   carrossel1,
   carrossel2,
   carrossel3,
@@ -25,7 +27,9 @@ export const OFFICIAL_IMAGES = {
 };
 
 export const DEFAULT_IMAGE_PATHS = {
-  portrait: carrossel1,
+  giro: giro12,
+  portrait: giro12,
+  car1: carrossel1,
   garden: carrossel2,
   waltz: carrossel3,
   special: carrossel4,
@@ -77,7 +81,8 @@ export function resolveImageUrl(
 
   const lower = trimmed.toLowerCase();
 
-  // Match 4 carousel images directly to their bundled Vite assets
+  // Match carousel images directly to their bundled Vite assets
+  if (lower.includes('giro') || lower.includes('car-giro')) return giro12;
   if (lower.includes('car-1') || lower.includes('carrossel-1') || lower.includes('mari_carousel_portrait')) return carrossel1;
   if (lower.includes('car-2') || lower.includes('carrossel-2') || lower.includes('mari_carousel_garden')) return carrossel2;
   if (lower.includes('car-3') || lower.includes('carrossel-3') || lower.includes('mari_debutante_waltz')) return carrossel3;

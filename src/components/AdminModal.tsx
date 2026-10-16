@@ -86,10 +86,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     return () => clearTimeout(timer);
   }, [formData, isAuthenticated]);
 
-  // New item modal/states
-  const [newCarouselUrl, setNewCarouselUrl] = useState('');
-  const [newCarouselTitle, setNewCarouselTitle] = useState('');
-  const [newCarouselCaption, setNewCarouselCaption] = useState('');
 
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [newGalleryTitle, setNewGalleryTitle] = useState('');
@@ -204,31 +200,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
-  // Carousel handlers (immediate permanent save)
-  const handleAddCarouselImage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCarouselUrl.trim()) return;
-
-    const newImg: CarouselImage = {
-      id: 'car_' + Date.now(),
-      url: newCarouselUrl.trim(),
-      title: newCarouselTitle.trim() || undefined,
-      caption: newCarouselCaption.trim() || undefined,
-      alt: newCarouselTitle.trim() || 'Foto de Mariana',
-    };
-
+  // Carousel handlers: Reset to permanent project photos
+  const handleResetCarousel = () => {
     const updated = {
       ...formData,
-      carouselImages: [...formData.carouselImages, newImg],
+      carouselImages: DEFAULT_CONFIG.carouselImages,
     };
     setFormData(updated);
     storageService.saveConfig(updated);
     onConfigUpdated(updated);
-
-    setNewCarouselUrl('');
-    setNewCarouselTitle('');
-    setNewCarouselCaption('');
-    setSaveStatus('✅ Foto adicionada ao carrossel e salva com sucesso!');
+    setSaveStatus('✅ Carrossel restaurado para as fotos oficiais do projeto.');
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
@@ -980,69 +961,32 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               {/* TAB 3: Carrossel */}
               {activeTab === 'carrossel' && (
                 <div className="space-y-6">
-                  <h3 className="font-serif-luxury text-xl font-bold border-b pb-2 flex items-center gap-2">
-                    <ImageIcon className="w-5 h-5 text-[#C9B4D9]" />
-                    <span>Fotos do Carrossel de Destaque</span>
-                  </h3>
-
-                  {/* Add form */}
-                  <form onSubmit={handleAddCarouselImage} className="p-4 rounded-2xl bg-[#FAF7F8] border border-[#B9B5C4]/40 space-y-3">
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#82758D]">
-                      Adicionar Nova Foto ao Carrossel
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="sm:col-span-2 flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={newCarouselUrl}
-                          onChange={(e) => setNewCarouselUrl(e.target.value)}
-                          placeholder="URL da Imagem (ou use o botão ao lado)"
-                          className="flex-1 px-3 py-2 rounded-xl border border-[#B9B5C4]/60 text-sm bg-white outline-hidden"
-                        />
-                        <label className="px-3.5 py-2 rounded-xl bg-[#E7DDEB] hover:bg-[#ded1e4] text-[#5D5068] text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors shrink-0">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Upload Local</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleFileUpload(e, (base64) => setNewCarouselUrl(base64))
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <div>
-                        <input
-                          type="text"
-                          value={newCarouselTitle}
-                          onChange={(e) => setNewCarouselTitle(e.target.value)}
-                          placeholder="Título (opcional)"
-                          className="w-full px-3 py-2 rounded-xl border border-[#B9B5C4]/60 text-sm bg-white outline-hidden"
-                        />
-                      </div>
-
-                      <div>
-                        <input
-                          type="text"
-                          value={newCarouselCaption}
-                          onChange={(e) => setNewCarouselCaption(e.target.value)}
-                          placeholder="Legenda da foto (opcional)"
-                          className="w-full px-3 py-2 rounded-xl border border-[#B9B5C4]/60 text-sm bg-white outline-hidden"
-                        />
-                      </div>
-                    </div>
-
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="font-serif-luxury text-xl font-bold flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-[#C9B4D9]" />
+                      <span>Fotos do Carrossel de Destaque</span>
+                    </h3>
                     <button
-                      type="submit"
-                      disabled={!newCarouselUrl.trim()}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#C9B4D9] hover:bg-[#bfa5d1] text-[#4A3B56] text-xs font-semibold disabled:opacity-50"
+                      type="button"
+                      onClick={handleResetCarousel}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-[#E7DDEB] hover:bg-[#ded1e4] text-[#5D5068] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Inserir no Carrossel</span>
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Restaurar Fotos Padrão</span>
                     </button>
-                  </form>
+                  </div>
+
+                  {/* Informational banner about permanent project photos (Upload disabled as requested) */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FAF7F8] via-[#FAF7F8] to-[#E7DDEB]/40 border border-[#B9B5C4]/40 space-y-2">
+                    <div className="flex items-center gap-2 text-[#4A3B56] font-semibold text-sm">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <span>Fotos Fixas e Permanentes do Projeto</span>
+                    </div>
+                    <p className="text-xs text-[#5D5068] leading-relaxed">
+                      As fotos do carrossel estão incorporadas de forma definitiva na pasta e no código do projeto (<code className="px-1.5 py-0.5 rounded bg-white border border-[#B9B5C4]/40 text-[#82758D] font-mono">public/images/</code> e <code className="px-1.5 py-0.5 rounded bg-white border border-[#B9B5C4]/40 text-[#82758D] font-mono">src/assets/images/</code>).
+                      O upload que gravava fotos apenas no navegador local foi desativado para garantir que qualquer convidado que abrir o link publicado veja exatamente essas fotos com máxima rapidez e nitidez.
+                    </p>
+                  </div>
 
                   {/* Existing Carousel Images */}
                   <div className="space-y-3">
@@ -1056,16 +1000,24 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           className="relative rounded-xl overflow-hidden border border-[#B9B5C4]/40 bg-white shadow-2xs group"
                         >
                           <img
-                            src={resolveImageUrl(img.url, idx === 1 ? 'garden' : idx === 2 ? 'waltz' : 'portrait')}
+                            src={resolveImageUrl(img.url, idx === 0 ? 'giro' : idx === 1 ? 'portrait' : idx === 2 ? 'garden' : idx === 3 ? 'waltz' : 'special')}
                             alt={img.alt || 'Foto do carrossel'}
                             className="w-full h-32 object-cover"
                           />
                           <div className="p-2 text-xs">
-                            <p className="font-semibold truncate">{img.title || 'Sem título'}</p>
-                            <p className="text-[#A49AAA] truncate">{img.caption || 'Sem legenda'}</p>
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="font-semibold truncate">{img.title || 'Mariana'}</p>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E7DDEB] text-[#5D5068] font-semibold shrink-0">
+                                Fixa Oficial
+                              </span>
+                            </div>
+                            <p className="text-[#A49AAA] truncate">{img.caption || 'XV da Mari'}</p>
+                            <p className="text-[10px] text-[#82758D] font-mono truncate mt-0.5" title={img.url}>
+                              {img.url}
+                            </p>
                           </div>
                           
-                          {/* Reorder and Delete controls */}
+                          {/* Reorder controls */}
                           <div className="absolute top-2 left-2 flex items-center gap-1">
                             {idx > 0 && (
                               <button
@@ -1086,14 +1038,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                               </button>
                             )}
                           </div>
-
-                          <button
-                            onClick={() => handleRemoveCarouselImage(img.id)}
-                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-rose-600/90 hover:bg-rose-700 text-white flex items-center justify-center transition-colors shadow-xs"
-                            title="Remover foto"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       ))}
                     </div>

@@ -43,6 +43,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
 
   carouselImages: [
     {
+      id: 'c_giro',
+      url: 'public/images/giro1-2.jpeg',
+      title: 'Mariana Amorim',
+      caption: 'XV Mari — O encanto e a magia de viver este sonho',
+      alt: 'Mariana com seu vestido de valsa',
+    },
+    {
       id: 'c1',
       url: 'public/images/car-1.jpeg',
       title: 'Mariana',
@@ -185,7 +192,7 @@ export const storageService = {
 
         // Check if config version needs upgrade to ensure new requested images are loaded
         const configVersion = parsed._configVersion || 1;
-        const CURRENT_VERSION = 9;
+        const CURRENT_VERSION = 10;
 
         // If version is older, ensure the new requested carousel, gallery photos, dress code guide and video are applied
         if (configVersion < CURRENT_VERSION) {
@@ -201,16 +208,8 @@ export const storageService = {
             localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(merged));
           } catch (_) {}
         } else {
-          // Ensure carouselImages reflects saved images without losing user uploads
-          if (Array.isArray(parsed.carouselImages) && parsed.carouselImages.length >= 4) {
-            merged.carouselImages = parsed.carouselImages.map((img: any) => ({
-              ...img,
-              title: sanitizeText(img.title || ''),
-              url: resolveImageUrl(img.url, 'portrait'),
-            }));
-          } else {
-            merged.carouselImages = DEFAULT_CONFIG.carouselImages;
-          }
+          // The carousel strictly uses permanent fixed project images so all visitors see the identical photos
+          merged.carouselImages = DEFAULT_CONFIG.carouselImages;
 
           // Map legacy or path URLs in galleryPhotos
           if (Array.isArray(parsed.galleryPhotos) && parsed.galleryPhotos.length >= 6) {
@@ -268,7 +267,7 @@ export const storageService = {
       const idbBackup = await mediaDb.getConfigBackup();
       if (idbBackup && typeof idbBackup === 'object') {
         const idbVersion = (idbBackup as any)._configVersion || 1;
-        const baseBackup = idbVersion < 9 ? {
+        const baseBackup = idbVersion < 10 ? {
           ...idbBackup,
           carouselImages: DEFAULT_CONFIG.carouselImages,
           galleryPhotos: DEFAULT_CONFIG.galleryPhotos,
@@ -277,9 +276,12 @@ export const storageService = {
           giftItems: DEFAULT_CONFIG.giftItems,
           externalGiftListDescription: DEFAULT_CONFIG.externalGiftListDescription,
           videoUrl: 'Convite-videomp4.mp4',
-          _configVersion: 9,
-        } : idbBackup;
-        const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...baseBackup };
+          _configVersion: 10,
+        } : {
+          ...idbBackup,
+          carouselImages: DEFAULT_CONFIG.carouselImages,
+        };
+        const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...baseBackup, carouselImages: DEFAULT_CONFIG.carouselImages };
         cachedConfig = merged;
         try {
           localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(merged));
