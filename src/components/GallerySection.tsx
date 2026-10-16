@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GalleryPhoto } from '../types';
 import { SoftHeart } from './Ornaments';
-import { resolveImageUrl, ASSET_IMAGES } from '../assets/imagesMap';
+import { resolveImageUrl, ASSET_IMAGES, OFFICIAL_IMAGES } from '../assets/imagesMap';
 import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 
 interface GallerySectionProps {
@@ -84,14 +84,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                   const target = e.currentTarget;
                   target.onerror = null;
                   const fallbacks = [
-                    ASSET_IMAGES.decor,
-                    ASSET_IMAGES.gallery2,
-                    ASSET_IMAGES.aboutMe,
-                    ASSET_IMAGES.gallery4,
-                    ASSET_IMAGES.gallery5,
-                    ASSET_IMAGES.shoes,
+                    OFFICIAL_IMAGES.galeria1,
+                    OFFICIAL_IMAGES.galeria2,
+                    OFFICIAL_IMAGES.galeria3,
+                    OFFICIAL_IMAGES.galeria4,
+                    OFFICIAL_IMAGES.galeria5,
+                    OFFICIAL_IMAGES.galeria6,
                   ];
-                  target.src = fallbacks[index % fallbacks.length] || ASSET_IMAGES.portrait;
+                  target.src = fallbacks[index % fallbacks.length] || OFFICIAL_IMAGES.galeria1;
                 }}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
               />
@@ -169,14 +169,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                 const target = e.currentTarget;
                 target.onerror = null;
                 const fallbacks = [
-                  ASSET_IMAGES.decor,
-                  ASSET_IMAGES.gallery2,
-                  ASSET_IMAGES.aboutMe,
-                  ASSET_IMAGES.gallery4,
-                  ASSET_IMAGES.gallery5,
-                  ASSET_IMAGES.shoes,
+                  OFFICIAL_IMAGES.galeria1,
+                  OFFICIAL_IMAGES.galeria2,
+                  OFFICIAL_IMAGES.galeria3,
+                  OFFICIAL_IMAGES.galeria4,
+                  OFFICIAL_IMAGES.galeria5,
+                  OFFICIAL_IMAGES.galeria6,
                 ];
-                target.src = fallbacks[activePhotoIndex % fallbacks.length] || ASSET_IMAGES.portrait;
+                target.src = fallbacks[activePhotoIndex % fallbacks.length] || OFFICIAL_IMAGES.galeria1;
               }}
               className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/20"
             />

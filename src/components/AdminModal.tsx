@@ -104,8 +104,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   // Change PIN state
   const [newPin, setNewPin] = useState('');
   const [pinChangedMsg, setPinChangedMsg] = useState('');
-
-  if (!isOpen) return null;
+  const [copiedSheetsData, setCopiedSheetsData] = useState(false);
 
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
@@ -364,8 +363,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     onRsvpsUpdated(updated);
   };
 
-  const [copiedSheetsData, setCopiedSheetsData] = useState(false);
-
   // Export CSV of RSVPs formatted for Google Sheets
   const handleExportRsvpCsv = () => {
     storageService.exportCsvRsvps();
@@ -417,6 +414,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div

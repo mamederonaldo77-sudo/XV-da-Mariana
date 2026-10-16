@@ -17,14 +17,14 @@ export const InvitationEnvelope: React.FC<InvitationEnvelopeProps> = ({
 }) => {
   const [isOpening, setIsOpening] = useState(false);
 
-  if (isOpen) return null;
-
   const handleOpenClick = () => {
     setIsOpening(true);
     setTimeout(() => {
       onOpen();
     }, 700);
   };
+
+  if (isOpen) return null;
 
   return (
     <div

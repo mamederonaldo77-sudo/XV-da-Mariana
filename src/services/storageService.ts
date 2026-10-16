@@ -22,7 +22,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
 
   aboutTitle: 'Sobre mim',
   aboutText: `Meu nome é Mariana e estou vivendo uma fase muito especial da minha vida. Completar 15 anos é celebrar minhas histórias, meus sonhos, minha família e todas as pessoas que fazem parte da minha caminhada.\n\nQuero compartilhar esse momento tão importante com pessoas especiais e guardar para sempre as lembranças desse dia.\n\nSerá uma alegria ter você comigo nessa celebração!`,
-  aboutImageUrl: '/images/galeria-3.jpeg',
+  aboutImageUrl: 'public/images/gal-5.jpeg',
 
   // Nossa Promessa
   promiseTitle: 'Nossa Promessa',
@@ -37,35 +37,35 @@ export const DEFAULT_CONFIG: SiteConfig = {
   pixKey: '21964335354',
   pixQrCodeUrl: '',
   externalGiftListTitle: 'Minha Lista de Presentes',
-  externalGiftListDescription: 'Para quem preferir escolher um presente especial, preparei uma lista em uma loja parceira.',
+  externalGiftListDescription: 'Para quem preferir me presentear com algo especial, deixo aqui algumas sugestões com muito carinho:',
   externalGiftListUrl: '',
   externalGiftListButtonText: 'Acessar Lista de Presentes',
 
   carouselImages: [
     {
       id: 'c1',
-      url: 'public/images/carrossel-1.jpeg',
+      url: 'public/images/car-1.jpeg',
       title: 'Mariana',
       caption: 'XV Mari — Celebrando 15 anos de sonhos e encantos',
       alt: 'Mariana com vestido e tiara delicada',
     },
     {
       id: 'c2',
-      url: 'public/images/carrossel-2.jpeg',
+      url: 'public/images/car-2.jpeg',
       title: 'Jardim Encantado',
       caption: 'Momentos inesquecíveis iluminados pelo luar',
       alt: 'Mariana caminhando no jardim',
     },
     {
       id: 'c3',
-      url: 'public/images/carrossel-3.jpeg',
+      url: 'public/images/car-3.jpeg',
       title: 'A Grande Valsa',
       caption: 'A magia de dançar o início de um novo capítulo',
       alt: 'Mariana dançando com vestido de baile',
     },
     {
       id: 'c4',
-      url: 'public/images/carrossel-4.jpeg',
+      url: 'public/images/car-4.jpeg',
       title: 'Momento Especial',
       caption: 'A alegria de comemorar com quem amamos',
       alt: 'Mariana celebrando seus 15 anos',
@@ -75,42 +75,42 @@ export const DEFAULT_CONFIG: SiteConfig = {
   galleryPhotos: [
     {
       id: 'g1',
-      url: 'public/images/galeria-1.jpeg',
+      url: 'public/images/gal-1.jpeg',
       title: 'Decoração e Flores',
       category: 'Detalhes',
       alt: 'Mesa de banquete com hortênsias lilás e velas',
     },
     {
       id: 'g2',
-      url: 'public/images/galeria-2.jpeg',
+      url: 'public/images/gal-2.jpeg',
       title: 'Jardim Iluminado',
       category: 'Ensaio',
       alt: 'Mariana no jardim florido',
     },
     {
       id: 'g3',
-      url: 'public/images/galeria-3.jpeg',
+      url: 'public/images/gal-3.jpeg',
       title: 'Sobre Mim',
       category: 'Retrato',
       alt: 'Mariana com sorriso meigo',
     },
     {
       id: 'g4',
-      url: 'public/images/galeria-4.jpeg',
+      url: 'public/images/gal-4.jpeg',
       title: 'Retrato da Debutante',
       category: 'Ensaio',
       alt: 'Retrato clássico com vestido e tiara',
     },
     {
       id: 'g5',
-      url: 'public/images/galeria-5.jpeg',
+      url: 'public/images/gal-5.jpeg',
       title: 'Salão Real',
       category: 'Celebração',
       alt: 'Mariana no salão de baile',
     },
     {
       id: 'g6',
-      url: 'public/images/galeria-6.jpeg',
+      url: 'public/images/gal-6.jpeg',
       title: 'Brilho e Detalhes',
       category: 'Detalhes',
       alt: 'Salto prateado e detalhes da comemoração',
@@ -120,21 +120,15 @@ export const DEFAULT_CONFIG: SiteConfig = {
   giftItems: [
     {
       id: 'gift_1',
-      title: 'Mimos para o Quarto',
-      category: 'Decoração',
-      description: 'Sugestão de mimos e itens decorativos em tons suaves para o meu cantinho.',
+      title: 'Jóias de prata',
+      category: 'Acessórios & Mimos',
+      description: 'Vivara ou Pandora',
     },
     {
       id: 'gift_2',
-      title: 'Livraria & Histórias Favoritas',
-      category: 'Livros',
-      description: 'Livros para a minha coleção e leituras inesquecíveis.',
-    },
-    {
-      id: 'gift_3',
-      title: 'Cota para a Valsa dos Sonhos (PIX)',
-      category: 'Contribuição',
-      description: 'Se desejar contribuir com qualquer valor para a celebração dos meus 15 anos.',
+      title: 'Perfumes e cremes',
+      category: 'Perfumaria & Beleza',
+      description: 'Exceto, Boticário e Natura',
     },
   ],
 
@@ -191,14 +185,16 @@ export const storageService = {
 
         // Check if config version needs upgrade to ensure new requested images are loaded
         const configVersion = parsed._configVersion || 1;
-        const CURRENT_VERSION = 7;
+        const CURRENT_VERSION = 9;
 
         // If version is older, ensure the new requested carousel, gallery photos, dress code guide and video are applied
         if (configVersion < CURRENT_VERSION) {
           merged.carouselImages = DEFAULT_CONFIG.carouselImages;
           merged.galleryPhotos = DEFAULT_CONFIG.galleryPhotos;
-          merged.aboutImageUrl = DEFAULT_CONFIG.aboutImageUrl;
+          merged.aboutImageUrl = 'public/images/gal-5.jpeg';
           merged.dressCodeImageUrl = DEFAULT_CONFIG.dressCodeImageUrl;
+          merged.giftItems = DEFAULT_CONFIG.giftItems;
+          merged.externalGiftListDescription = DEFAULT_CONFIG.externalGiftListDescription;
           merged.videoUrl = 'Convite-videomp4.mp4';
           merged._configVersion = CURRENT_VERSION;
           try {
@@ -246,11 +242,8 @@ export const storageService = {
         if (!merged.pixKey || merged.pixKey.trim() === '') {
           merged.pixKey = '21964335354';
         }
-        if (!merged.videoUrl || merged.videoUrl.trim() === '') {
-          merged.videoUrl = 'Convite-videomp4.mp4';
-        }
-        if (!merged.aboutImageUrl || merged.aboutImageUrl.includes('mari_about_me')) {
-          merged.aboutImageUrl = 'images/galeria-3.jpeg';
+        if (!merged.aboutImageUrl || merged.aboutImageUrl.includes('galeria-3')) {
+          merged.aboutImageUrl = 'public/images/gal-5.jpeg';
         }
         if (merged.aboutText) {
           merged.aboutText = merged.aboutText
@@ -275,14 +268,16 @@ export const storageService = {
       const idbBackup = await mediaDb.getConfigBackup();
       if (idbBackup && typeof idbBackup === 'object') {
         const idbVersion = (idbBackup as any)._configVersion || 1;
-        const baseBackup = idbVersion < 7 ? {
+        const baseBackup = idbVersion < 9 ? {
           ...idbBackup,
           carouselImages: DEFAULT_CONFIG.carouselImages,
           galleryPhotos: DEFAULT_CONFIG.galleryPhotos,
-          aboutImageUrl: DEFAULT_CONFIG.aboutImageUrl,
+          aboutImageUrl: 'public/images/gal-5.jpeg',
           dressCodeImageUrl: DEFAULT_CONFIG.dressCodeImageUrl,
+          giftItems: DEFAULT_CONFIG.giftItems,
+          externalGiftListDescription: DEFAULT_CONFIG.externalGiftListDescription,
           videoUrl: 'Convite-videomp4.mp4',
-          _configVersion: 7,
+          _configVersion: 9,
         } : idbBackup;
         const merged: SiteConfig = { ...DEFAULT_CONFIG, ...current, ...baseBackup };
         cachedConfig = merged;

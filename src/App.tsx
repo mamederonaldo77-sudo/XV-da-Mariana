@@ -206,7 +206,7 @@ export default function App() {
             <AboutMeSection
               title={config.aboutTitle}
               text={config.aboutText}
-              imageUrl={config.aboutImageUrl || '/images/galeria-3.jpeg'}
+              imageUrl={config.aboutImageUrl || 'public/images/gal-5.jpeg'}
               debutanteName={config.debutanteName}
             />
           </div>

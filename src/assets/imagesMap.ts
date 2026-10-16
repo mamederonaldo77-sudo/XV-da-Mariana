@@ -29,7 +29,7 @@ export const DEFAULT_IMAGE_PATHS = {
   garden: carrossel2,
   waltz: carrossel3,
   special: carrossel4,
-  aboutMe: galeria3,
+  aboutMe: galeria5,
   decor: galeria1,
   gallery2: galeria2,
   gallery4: galeria4,
@@ -78,18 +78,18 @@ export function resolveImageUrl(
   const lower = trimmed.toLowerCase();
 
   // Match 4 carousel images directly to their bundled Vite assets
-  if (lower.includes('carrossel-1') || lower.includes('mari_carousel_portrait')) return carrossel1;
-  if (lower.includes('carrossel-2') || lower.includes('mari_carousel_garden')) return carrossel2;
-  if (lower.includes('carrossel-3') || lower.includes('mari_debutante_waltz')) return carrossel3;
-  if (lower.includes('carrossel-4')) return carrossel4;
+  if (lower.includes('car-1') || lower.includes('carrossel-1') || lower.includes('mari_carousel_portrait')) return carrossel1;
+  if (lower.includes('car-2') || lower.includes('carrossel-2') || lower.includes('mari_carousel_garden')) return carrossel2;
+  if (lower.includes('car-3') || lower.includes('carrossel-3') || lower.includes('mari_debutante_waltz')) return carrossel3;
+  if (lower.includes('car-4') || lower.includes('carrossel-4')) return carrossel4;
 
   // Match 6 gallery images directly to their bundled Vite assets
-  if (lower.includes('galeria-1') || lower.includes('mari_gallery_decor')) return galeria1;
-  if (lower.includes('galeria-2')) return galeria2;
-  if (lower.includes('galeria-3') || lower.includes('mari_about_me')) return galeria3;
-  if (lower.includes('galeria-4')) return galeria4;
-  if (lower.includes('galeria-5')) return galeria5;
-  if (lower.includes('galeria-6') || lower.includes('mari_gallery_shoes')) return galeria6;
+  if (lower.includes('gal-1') || lower.includes('galeria-1') || lower.includes('mari_gallery_decor')) return galeria1;
+  if (lower.includes('gal-2') || lower.includes('galeria-2')) return galeria2;
+  if (lower.includes('gal-3') || lower.includes('galeria-3') || lower.includes('mari_about_me')) return galeria3;
+  if (lower.includes('gal-4') || lower.includes('galeria-4')) return galeria4;
+  if (lower.includes('gal-5') || lower.includes('galeria-5')) return galeria5;
+  if (lower.includes('gal-6') || lower.includes('galeria-6') || lower.includes('mari_gallery_shoes')) return galeria6;
 
   // Match dress code guide
   if (lower.includes('guia') || lower.includes('traje')) return guiaTrajeImg;
