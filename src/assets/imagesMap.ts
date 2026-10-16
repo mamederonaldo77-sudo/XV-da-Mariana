@@ -1,13 +1,13 @@
-import carrossel1 from './images/carrossel-1.jpeg';
-import carrossel2 from './images/carrossel-2.jpeg';
-import carrossel3 from './images/carrossel-3.jpeg';
-import carrossel4 from './images/carrossel-4.jpeg';
-import galeria1 from './images/galeria-1.jpeg';
-import galeria2 from './images/galeria-2.jpeg';
-import galeria3 from './images/galeria-3.jpeg';
-import galeria4 from './images/galeria-4.jpeg';
-import galeria5 from './images/galeria-5.jpeg';
-import galeria6 from './images/galeria-6.jpeg';
+import carrossel1 from './images/car-1.jpeg';
+import carrossel2 from './images/car-2.jpeg';
+import carrossel3 from './images/car-3.jpeg';
+import carrossel4 from './images/car-4.jpeg';
+import galeria1 from './images/gal-1.jpeg';
+import galeria2 from './images/gal-2.jpeg';
+import galeria3 from './images/gal-3.jpeg';
+import galeria4 from './images/gal-4.jpeg';
+import galeria5 from './images/gal-5.jpeg';
+import galeria6 from './images/gal-6.jpeg';
 import guiaTrajeImg from './images/guia_traje_mari_1792084852049.jpg';
 
 export const OFFICIAL_IMAGES = {
